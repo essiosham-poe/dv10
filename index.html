@@ -50,7 +50,7 @@ html,body{background:#050a14;min-height:100vh;font-family:sans-serif;}
 // ПАРОЛИ — меняй прямо здесь
 // ══════════════════════════════════════
 var PASSWORDS = {
-  "DynamoVD2026": "admin",
+  "admin2026": "admin",
   "staff2026": "staff",
 };
 var SESSION_KEY  = "DV_AUTH_V10";
@@ -410,8 +410,11 @@ react-dom/cjs/react-dom-client.production.js:
     return __spreadProps(__spreadValues({}, b), { slots: legacySlots(b), ballCount: b.ballCount || 0, ballStorage: b.ballStorage || false });
   }
   function App() {
+    // Режим просмотра: ?view=1 в URL или ?view=KEY
+    const urlParams = new URLSearchParams(window.location.search);
+    const isViewOnly = urlParams.get("view") === "1" || urlParams.get("v") === "1";
     const [data, setData] = useState(null);
-    const [tab, setTab] = useState("today");
+    const [tab, setTab] = useState(isViewOnly ? "load" : "today");
     const [sel, setSel] = useState(dkey(/* @__PURE__ */ new Date()));
     const [modal, setModal] = useState(null);
     const [toast, setToast] = useState(null);
@@ -545,7 +548,7 @@ react-dom/cjs/react-dom-client.production.js:
       setToast({ msg, type });
       setTimeout(() => setToast(null), 3e3);
     };
-    const open = (type, payload = null) => setModal({ type, payload });
+    const open = (type, payload = null) => { if (isViewOnly && (type === "booking" || type === "org")) return; setModal({ type, payload }); };
     const close = () => setModal(null);
     if (!data) return /* @__PURE__ */ React.createElement("div", { style: {
       display: "flex",
@@ -560,7 +563,7 @@ react-dom/cjs/react-dom-client.production.js:
     } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 48 } }, "\u{1F3D6}\uFE0F"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14 } }, "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430\u2026"));
     const conflicts = getConflicts(data.bookings, data.orgBookings);
     const colorMap = mkColorMap(data.bookings);
-    const ctx = { data, save, toast: toast_, open, close, conflicts, colorMap, sel, setSel, weekFull, setWeekFull };
+    const ctx = { data, save, toast: toast_, open, close, conflicts, colorMap, sel, setSel, weekFull, setWeekFull, isViewOnly };
     const TABS = [
       { id: "today", icon: "\u{1F4C5}", label: "\u0421\u0435\u0433\u043E\u0434\u043D\u044F" },
       { id: "week", icon: "\u{1F4CA}", label: "\u041D\u0435\u0434\u0435\u043B\u044F" },
@@ -573,11 +576,11 @@ react-dom/cjs/react-dom-client.production.js:
       { id: "load", icon: "\u{1F4CA}", label: "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430" },
       { id: "notes", icon: "\u{1F4DD}", label: "\u0411\u043B\u043E\u043A\u043D\u043E\u0442" },
       { id: "set", icon: "\u2699\uFE0F", label: "\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438" }
-    ];
-    return /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "'DM Sans',-apple-system,sans-serif", minHeight: "100vh", background: "#050a14", color: "#ddeeff" } }, /* @__PURE__ */ React.createElement("style", null, CSS), !weekFull && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("header", { className: "hdr" }, /* @__PURE__ */ React.createElement("div", { className: "hdr-logo" }, /* @__PURE__ */ React.createElement("svg", { width: "32", height: "32", viewBox: "0 0 32 32", className: "logo-ball" }, /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "#1a3060", stroke: "#60a5fa", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "url(#bv_grad)", stroke: "#2a5a9a", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("radialGradient", { id: "bv_grad", cx: "35%", cy: "30%" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#3a6abb" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#0a1830" }))), /* @__PURE__ */ React.createElement("path", { d: "M16 1 Q24 8 31 16 Q24 24 16 31 Q8 24 1 16 Q8 8 16 1Z", fill: "none", stroke: "#fbbf24", strokeWidth: "1.2", opacity: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M1 16 Q8 8 16 1 Q20 10 18 16 Q20 22 16 31 Q8 24 1 16Z", fill: "#1e4a9a", opacity: "0.5" }), /* @__PURE__ */ React.createElement("path", { d: "M31 16 Q24 24 16 31 Q12 22 14 16 Q12 10 16 1 Q24 8 31 16Z", fill: "#fbbf2422", opacity: "0.6" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "4", fill: "none", stroke: "#fbbf2466", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M10 6 Q16 12 22 6", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M6 22 Q12 16 6 10", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M26 10 Q20 16 26 22", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "logo-title" }, "DYNAMO VODNY"))), /* @__PURE__ */ React.createElement("div", { className: "hdr-actions" }, conflicts.length > 0 && /* @__PURE__ */ React.createElement("button", { className: "conflict-pill", onClick: () => setTab("alerts") }, "\u26A0\uFE0F ", conflicts.length), remAlert && /* @__PURE__ */ React.createElement("button", { className: "rem-pill", onClick: () => {
+    ].filter(t => !isViewOnly || ["load","month","today"].includes(t.id));
+    return /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "'DM Sans',-apple-system,sans-serif", minHeight: "100vh", background: "#050a14", color: "#ddeeff" } }, /* @__PURE__ */ React.createElement("style", null, CSS), !weekFull && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("header", { className: "hdr" }, /* @__PURE__ */ React.createElement("div", { className: "hdr-logo" }, /* @__PURE__ */ React.createElement("svg", { width: "32", height: "32", viewBox: "0 0 32 32", className: "logo-ball" }, /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "#1a3060", stroke: "#60a5fa", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "url(#bv_grad)", stroke: "#2a5a9a", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("radialGradient", { id: "bv_grad", cx: "35%", cy: "30%" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#3a6abb" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#0a1830" }))), /* @__PURE__ */ React.createElement("path", { d: "M16 1 Q24 8 31 16 Q24 24 16 31 Q8 24 1 16 Q8 8 16 1Z", fill: "none", stroke: "#fbbf24", strokeWidth: "1.2", opacity: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M1 16 Q8 8 16 1 Q20 10 18 16 Q20 22 16 31 Q8 24 1 16Z", fill: "#1e4a9a", opacity: "0.5" }), /* @__PURE__ */ React.createElement("path", { d: "M31 16 Q24 24 16 31 Q12 22 14 16 Q12 10 16 1 Q24 8 31 16Z", fill: "#fbbf2422", opacity: "0.6" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "4", fill: "none", stroke: "#fbbf2466", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M10 6 Q16 12 22 6", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M6 22 Q12 16 6 10", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M26 10 Q20 16 26 22", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "logo-title" }, "DYNAMO VODNY"))), /* @__PURE__ */ React.createElement("div", { className: "hdr-actions" }, isViewOnly && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#2a5a40", background: "#0a1a10", border: "1px solid #1e4a2a", borderRadius: 20, padding: "4px 12px" } }, "\u{1F440} \u0420\u0435\u0436\u0438\u043C \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u0430"), !isViewOnly && conflicts.length > 0 && /* @__PURE__ */ React.createElement("button", { className: "conflict-pill", onClick: () => setTab("alerts") }, "\u26A0\uFE0F ", conflicts.length), remAlert && /* @__PURE__ */ React.createElement("button", { className: "rem-pill", onClick: () => {
       setTab("notes");
       setRemAlert(null);
-    } }, "\u{1F514} ", remAlert.text.slice(0, 18), "\u2026"), syncSt !== "idle" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 5, background: "#0a1525", border: "1px solid #1e4a2a", borderRadius: 20, padding: "5px 10px", fontSize: 11, color: syncSt === "saved" ? "#34d399" : syncSt === "error" ? "#ef4444" : "#fbbf24" } }, /* @__PURE__ */ React.createElement("div", { style: { width: 6, height: 6, borderRadius: "50%", background: "currentColor", flexShrink: 0 } }), syncSt === "saved" ? `\u2601\uFE0F ${syncMsg}` : syncSt === "saving" ? "\u2601\uFE0F \u0421\u043E\u0445\u0440\u2026" : syncSt === "loading" ? "\u2601\uFE0F \u0417\u0430\u0433\u0440\u2026" : "\u26A0\uFE0F"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("calc", null) }, "\u{1F9EE}"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ai", onClick: () => open("ai", null) }, "\u{1F916} \u0410\u0441\u0441\u0438\u0441\u0442\u0435\u043D\u0442"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => open("booking", null) }, "\uFF0B \u0411\u0440\u043E\u043D\u044C"))), /* @__PURE__ */ React.createElement("nav", { className: "nav" }, TABS.map((t) => /* @__PURE__ */ React.createElement("button", { key: t.id, className: `ntab${tab === t.id ? " ntab-on" : ""}`, onClick: () => setTab(t.id) }, /* @__PURE__ */ React.createElement("span", null, t.icon), /* @__PURE__ */ React.createElement("span", { className: "ntab-lbl" }, t.label), (t.badge || 0) > 0 && /* @__PURE__ */ React.createElement("span", { className: "nbadge" }, t.badge))))), /* @__PURE__ */ React.createElement("main", { className: weekFull ? "wfull-main" : "main" }, tab === "today" && /* @__PURE__ */ React.createElement(TodayTab, { ctx }), tab === "week" && /* @__PURE__ */ React.createElement(WeekTab, { ctx }), tab === "sched" && /* @__PURE__ */ React.createElement(DayTab, { ctx }), tab === "month" && /* @__PURE__ */ React.createElement(MonthTab, { ctx, onDay: (d) => {
+    } }, "\u{1F514} ", remAlert.text.slice(0, 18), "\u2026"), syncSt !== "idle" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 5, background: "#0a1525", border: "1px solid #1e4a2a", borderRadius: 20, padding: "5px 10px", fontSize: 11, color: syncSt === "saved" ? "#34d399" : syncSt === "error" ? "#ef4444" : "#fbbf24" } }, /* @__PURE__ */ React.createElement("div", { style: { width: 6, height: 6, borderRadius: "50%", background: "currentColor", flexShrink: 0 } }), syncSt === "saved" ? `\u2601\uFE0F ${syncMsg}` : syncSt === "saving" ? "\u2601\uFE0F \u0421\u043E\u0445\u0440\u2026" : syncSt === "loading" ? "\u2601\uFE0F \u0417\u0430\u0433\u0440\u2026" : "\u26A0\uFE0F"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("calc", null) }, "\u{1F9EE}"), !isViewOnly && /* @__PURE__ */ React.createElement("button", { className: "btn btn-ai", onClick: () => open("ai", null) }, "\u{1F916} \u0410\u0441\u0441\u0438\u0441\u0442\u0435\u043D\u0442"), !isViewOnly && /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => open("booking", null) }, "\uFF0B \u0411\u0440\u043E\u043D\u044C"))), /* @__PURE__ */ React.createElement("nav", { className: "nav" }, TABS.map((t) => /* @__PURE__ */ React.createElement("button", { key: t.id, className: `ntab${tab === t.id ? " ntab-on" : ""}`, onClick: () => setTab(t.id) }, /* @__PURE__ */ React.createElement("span", null, t.icon), /* @__PURE__ */ React.createElement("span", { className: "ntab-lbl" }, t.label), (t.badge || 0) > 0 && /* @__PURE__ */ React.createElement("span", { className: "nbadge" }, t.badge))))), /* @__PURE__ */ React.createElement("main", { className: weekFull ? "wfull-main" : "main" }, tab === "today" && /* @__PURE__ */ React.createElement(TodayTab, { ctx }), tab === "week" && /* @__PURE__ */ React.createElement(WeekTab, { ctx }), tab === "sched" && /* @__PURE__ */ React.createElement(DayTab, { ctx }), tab === "month" && /* @__PURE__ */ React.createElement(MonthTab, { ctx, onDay: (d) => {
       setSel(d);
       setTab("sched");
     } }), tab === "bks" && /* @__PURE__ */ React.createElement(BookingsTab, { ctx }), tab === "orgs" && /* @__PURE__ */ React.createElement(OrgsTab, { ctx }), tab === "alerts" && /* @__PURE__ */ React.createElement(AlertsTab, { ctx }), tab === "fin" && /* @__PURE__ */ React.createElement(FinTab, { ctx }), tab === "load" && /* @__PURE__ */ React.createElement(LoadTab, { ctx }), tab === "notes" && /* @__PURE__ */ React.createElement(NotesTab, { ctx }), tab === "free" && /* @__PURE__ */ React.createElement(FreeTab, { ctx }), tab === "set" && /* @__PURE__ */ React.createElement(SettingsTab, { ctx })), (modal == null ? void 0 : modal.type) === "booking" && /* @__PURE__ */ React.createElement(BookingModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "org" && /* @__PURE__ */ React.createElement(OrgModal, { ctx, ob: modal.payload }), (modal == null ? void 0 : modal.type) === "detail" && /* @__PURE__ */ React.createElement(DetailModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "pay" && /* @__PURE__ */ React.createElement(PayModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "sessions" && /* @__PURE__ */ React.createElement(SessionsModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "summary" && /* @__PURE__ */ React.createElement(SummaryModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "orgsumm" && /* @__PURE__ */ React.createElement(OrgSummaryModal, { ctx, ob: modal.payload }), (modal == null ? void 0 : modal.type) === "calc" && /* @__PURE__ */ React.createElement(CalcModal, { onClose: close }), (modal == null ? void 0 : modal.type) === "ai" && /* @__PURE__ */ React.createElement(AiModal, { ctx, onClose: close }), toast && /* @__PURE__ */ React.createElement("div", { className: `toast toast-${toast.type}` }, toast.msg));
@@ -944,110 +947,223 @@ react-dom/cjs/react-dom-client.production.js:
     })));
   }
   function LoadTab({ ctx }) {
-    const { data } = ctx;
-    const { bookings, orgBookings } = data;
-    const MF2 = ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"];
-    const DLBL3 = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
-    const today = new Date(); today.setHours(0,0,0,0);
-    // Build months: current + next 4
-    const months = [];
-    for (let i = 0; i < 5; i++) {
-      const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
-      months.push({ y: d.getFullYear(), m: d.getMonth() });
-    }
-    const [selM, setSelM] = React.useState(0);
-    const { y, m } = months[selM];
-    const daysInMonth = new Date(y, m+1, 0).getDate();
-    const hours = [];
-    for (let h = 7; h < 23; h++) hours.push(h);
-    // Build busy map for this month
-    const busyMap = {}; // date -> courtId -> [{ts,te}]
-    const allDays = [];
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dk = y + "-" + String(m+1).padStart(2,"0") + "-" + String(d).padStart(2,"0");
-      allDays.push(dk);
+    var data = ctx.data, openM = ctx.open, isViewOnly = ctx.isViewOnly;
+    var bookings = data.bookings, orgBookings = data.orgBookings;
+    var now2 = new Date();
+    var sYear = now2.getMonth() >= 4 ? now2.getFullYear() : now2.getFullYear() - 1;
+    var MONTHS = [
+      { y: sYear, m: 4, label: "Май" },
+      { y: sYear, m: 5, label: "Июнь" },
+      { y: sYear, m: 6, label: "Июль" },
+      { y: sYear, m: 7, label: "Август" },
+      { y: sYear, m: 8, label: "Сентябрь" }
+    ];
+    var curMonthIdx = MONTHS.findIndex(function(mo) { return mo.m === now2.getMonth(); });
+    var R = React;
+    var selMState = R.useState(curMonthIdx >= 0 ? curMonthIdx : 0);
+    var selM = selMState[0], setSelM = selMState[1];
+    var selDayState = R.useState(null);
+    var selDay = selDayState[0], setSelDay = selDayState[1];
+    var todayKey = dkey(new Date());
+    var MO = MONTHS[selM];
+    var y = MO.y, m = MO.m;
+    var daysInMonth = new Date(y, m + 1, 0).getDate();
+    var DWN = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+
+    // Build busy map
+    var busyMap = {};
+    var allDaysList = [];
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dk = y + "-" + String(m+1).padStart(2,"0") + "-" + String(d).padStart(2,"0");
+      allDaysList.push(dk);
       busyMap[dk] = {};
-      ALL_COURTS.forEach(ct => busyMap[dk][ct.id] = []);
+      ALL_COURTS.forEach(function(ct) { busyMap[dk][ct.id] = []; });
     }
-    bookings.forEach(b => {
-      allDates(b).forEach(dk => {
+    bookings.forEach(function(b) {
+      allDates(b).forEach(function(dk) {
         if (!busyMap[dk]) return;
-        slotsOnDate(b, dk).forEach(sl => {
-          (sl.courts||[]).forEach(cid => {
-            if (busyMap[dk][cid]) busyMap[dk][cid].push({ ts: t2m(sl.timeStart), te: norm(sl.timeEnd) });
+        slotsOnDate(b, dk).forEach(function(sl) {
+          (sl.courts||[]).forEach(function(cid) {
+            if (busyMap[dk][cid]) busyMap[dk][cid].push({ ts: t2m(sl.timeStart), te: norm(sl.timeEnd), name: b.clientName, bk: b });
           });
         });
       });
     });
-    orgBookings.forEach(ob => {
-      (ob.dates||[]).forEach(dk => {
+    orgBookings.forEach(function(ob) {
+      (ob.dates||[]).forEach(function(dk) {
         if (!busyMap[dk]) return;
-        const cts = ob.blockAll ? ALL_COURTS.map(c=>c.id) : (ob.courts||[]);
-        cts.forEach(cid => {
-          if (busyMap[dk] && busyMap[dk][cid]) busyMap[dk][cid].push({ ts: t2m(ob.timeStart||"07:00"), te: norm(ob.timeEnd||"23:00") });
+        var cts = ob.blockAll ? ALL_COURTS.map(function(c){return c.id;}) : (ob.courts||[]);
+        cts.forEach(function(cid) {
+          if (busyMap[dk] && busyMap[dk][cid]) busyMap[dk][cid].push({ ts: t2m(ob.timeStart||"07:00"), te: norm(ob.timeEnd||"23:00"), name: "\uD83C\uDFE2 " + ob.orgName, org: true });
         });
       });
     });
-    // For each day+hour: count free courts
-    function freeCourts(dk, h) {
-      if (!busyMap[dk]) return ALL_COURTS.length;
-      return ALL_COURTS.filter(ct => !(busyMap[dk][ct.id]||[]).some(b => b.ts <= h*60 && b.te > h*60)).length;
-    }
-    const total = ALL_COURTS.length;
-    // Color by free count
-    function cellColor(free) {
-      if (free === total) return "#0d2a0d"; // all free - dark green
-      if (free === 0) return "#2a0a0a";     // all busy - dark red
-      if (free >= total * 0.7) return "#1a3a1a"; // mostly free
-      if (free >= total * 0.4) return "#2a2a0a"; // half
-      return "#2a1a0a"; // mostly busy
-    }
-    function cellText(free) {
-      if (free === total) return "#34d399";
-      if (free === 0) return "#ef4444";
-      if (free >= total * 0.7) return "#86efac";
-      if (free >= total * 0.4) return "#fbbf24";
-      return "#f97316";
-    }
-    return /* @__PURE__ */ React.createElement("div", null,
-      /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" } },
-        months.map((mo, i) => /* @__PURE__ */ React.createElement("button", { key: i,
-          className: "btn btn-sm " + (selM===i?"btn-primary":"btn-ghost"),
-          onClick: () => setSelM(i) },
-          MF2[mo.m] + " " + mo.y))),
-      /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#3a5a70", marginBottom: 8, display: "flex", gap: 12, flexWrap: "wrap" } },
-        /* @__PURE__ */ React.createElement("span", { style: { color: "#34d399" } }, "■ Свободно всё"),
-        /* @__PURE__ */ React.createElement("span", { style: { color: "#86efac" } }, "■ Большинство св."),
-        /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } }, "■ Половина"),
-        /* @__PURE__ */ React.createElement("span", { style: { color: "#f97316" } }, "■ Мало"),
-        /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } }, "■ Занято всё")),
-      /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } },
-        /* @__PURE__ */ React.createElement("table", { style: { borderCollapse: "collapse", fontSize: 10, minWidth: "100%" } },
-          /* @__PURE__ */ React.createElement("thead", null,
-            /* @__PURE__ */ React.createElement("tr", null,
-              /* @__PURE__ */ React.createElement("th", { style: { background: "#090e1a", padding: "4px 6px", color: "#3a5a70", fontWeight: 700, position: "sticky", left: 0, zIndex: 5, minWidth: 36 } }, "Час"),
-              allDays.map(dk => {
-                const dt = ld(dk);
-                const dow = dt.getDay();
-                const isWe = dow===0||dow===6;
-                const isToday2 = dkey(dt) === dkey(new Date());
-                return /* @__PURE__ */ React.createElement("th", { key: dk, style: { background: isToday2?"#0d2240":isWe?"#1a1020":"#090e1a", color: isToday2?"#60a5fa":isWe?"#a78bfa":"#3a5a70", padding: "3px 2px", minWidth: 22, textAlign: "center", fontWeight: isToday2?800:600, borderLeft: isWe?"2px solid #2a1a4a":"1px solid #0d1520" } },
-                  DLBL3[dow].slice(0,1), /* @__PURE__ */ React.createElement("br", null), dt.getDate());
+
+    var SS = 7*60, SE = 23*60, SD = SE-SS; // slot start/end/duration
+
+    // Month tabs
+    var tabs = R.createElement("div", { style: { display:"flex", gap:6, marginBottom:12, flexWrap:"wrap" } },
+      MONTHS.map(function(mo, i) {
+        return R.createElement("button", { key:i, className:"btn btn-sm " + (selM===i?"btn-primary":"btn-ghost"),
+          onClick: function() { setSelM(i); setSelDay(null); } }, mo.label + " " + mo.y);
+      })
+    );
+
+    // ── DAY DETAIL VIEW ──────────────────────────────────────────────────────
+    if (selDay) {
+      var dt2 = ld(selDay);
+      var dow2 = dt2.getDay();
+      var isWe2 = dow2===0||dow2===6;
+      var hourMarks = [7,9,11,13,15,17,19,21];
+
+      return R.createElement("div", null,
+        tabs,
+        R.createElement("div", { style: { display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" } },
+          R.createElement("button", { className:"btn btn-ghost btn-sm", onClick:function(){setSelDay(null);} }, "\u2190 \u041D\u0430\u0437\u0430\u0434"),
+          R.createElement("div", { style: { fontWeight:700, fontSize:16, color:"#c0d8f0" } },
+            DWN[dow2], " ", dt2.getDate(), " ", MO.label, " ", y),
+          isWe2 && R.createElement("span", { style: { fontSize:11, color:"#a78bfa", background:"#1a0a3a", borderRadius:6, padding:"2px 8px" } }, "\u0412\u044b\u0445\u043e\u0434\u043d\u043e\u0439"),
+          !isViewOnly && R.createElement("button", { className:"btn btn-primary btn-sm", style:{marginLeft:"auto"},
+            onClick:function(){openM("booking",{_prefDate:selDay});} }, "+ \u0411\u0440\u043e\u043d\u044c")),
+        R.createElement("div", { style: { borderRadius:12, border:"1px solid #1a2d4a", overflow:"hidden" } },
+          // Time ruler header
+          R.createElement("div", { style: { display:"flex", borderBottom:"1px solid #1a2d4a", background:"#090e1a" } },
+            R.createElement("div", { style: { width:70, flexShrink:0, padding:"6px 8px", fontSize:10, color:"#2a4a70", fontWeight:700 } }, "\u041a\u041e\u0420\u0422"),
+            R.createElement("div", { style: { flex:1, position:"relative", height:28 } },
+              hourMarks.map(function(h) {
+                return R.createElement("div", { key:h, style: {
+                  position:"absolute", left:((h*60-SS)/SD*100)+"%",
+                  top:0, bottom:0, borderLeft:"1px solid #1a2d4a",
+                  display:"flex", alignItems:"center", paddingLeft:3
+                } }, R.createElement("span", { style:{fontSize:9, color:"#2a4a70", fontFamily:"monospace"} }, String(h).padStart(2,"0")+":00"));
               }))),
-          /* @__PURE__ */ React.createElement("tbody", null,
-            hours.map(h => /* @__PURE__ */ React.createElement("tr", { key: h },
-              /* @__PURE__ */ React.createElement("td", { style: { background: "#090e1a", color: "#2a4a70", padding: "2px 6px", fontFamily: "monospace", fontWeight: 600, position: "sticky", left: 0, zIndex: 4, fontSize: 10, borderBottom: "1px solid #0d1520" } },
-                String(h).padStart(2,"0") + ":00"),
-              allDays.map(dk => {
-                const free = freeCourts(dk, h);
-                const bg = cellColor(free);
-                const col = cellText(free);
-                const dt = ld(dk);
-                const isWe = dt.getDay()===0||dt.getDay()===6;
-                return /* @__PURE__ */ React.createElement("td", { key: dk, title: dk + " " + String(h).padStart(2,"0") + ":00 — свободно " + free + "/" + total + " кортов",
-                  style: { background: bg, color: col, textAlign: "center", padding: "3px 1px", borderLeft: isWe?"2px solid #2a1a4a":"1px solid #0d1520", borderBottom: "1px solid #0d1520", fontWeight: 700, minWidth: 22 } },
-                  free === total ? "✓" : free === 0 ? "✗" : free);
-              })))))));
+          // Court rows
+          ALL_COURTS.map(function(ct, ci) {
+            var slots = (busyMap[selDay] && busyMap[selDay][ct.id]) ? busyMap[selDay][ct.id] : [];
+            var sorted = slots.slice().sort(function(a,b){return a.ts-b.ts;});
+            var freeRanges = [];
+            var prev = SS;
+            sorted.forEach(function(s) {
+              if (s.ts > prev) freeRanges.push({ ts:prev, te:s.ts });
+              prev = Math.max(prev, s.te);
+            });
+            if (prev < SE) freeRanges.push({ ts:prev, te:SE });
+
+            return R.createElement("div", { key:ct.id, style: {
+              display:"flex", alignItems:"stretch",
+              borderBottom:"1px solid #0e1828",
+              background: ci%2===0 ? "#0a1020" : "#090d18",
+              minHeight:56
+            } },
+              R.createElement("div", { style: { width:70, flexShrink:0, padding:"8px", borderRight:"1px solid #1a2d4a",
+                display:"flex", flexDirection:"column", justifyContent:"center" } },
+                R.createElement("div", { style:{fontSize:11, fontWeight:700, color:"#60a5fa"} },
+                  ct.t==="fb"?"\u26bd":ct.t==="tn"?"\ud83c\udFBe":"\ud83c\udFd0", " \u21161", ct.id),
+                R.createElement("div", { style:{fontSize:9, color:"#2a4a70", marginTop:2} },
+                  slots.length ? slots.length + " \u0431\u0440." : "\u0441\u0432\u043e\u0431\u043e\u0434\u043d\u043e")),
+              R.createElement("div", { style: { flex:1, position:"relative", minHeight:56 } },
+                freeRanges.map(function(fr, i) {
+                  return R.createElement("div", { key:"f"+i,
+                    onClick: !isViewOnly ? function(){openM("booking",{_prefDate:selDay,_prefCourt:ct.id});} : undefined,
+                    style: {
+                      position:"absolute",
+                      left:((fr.ts-SS)/SD*100)+"%", width:((fr.te-fr.ts)/SD*100)+"%",
+                      top:4, bottom:4,
+                      background:"rgba(16,185,129,.08)", border:"1px dashed rgba(16,185,129,.3)",
+                      borderRadius:4, cursor:isViewOnly?"default":"pointer",
+                      display:"flex", alignItems:"center", justifyContent:"center"
+                    } },
+                    R.createElement("span", { style:{fontSize:9, color:"#34d399", fontWeight:600} },
+                      m2t(fr.ts) + "\u2013" + m2t(fr.te)));
+                }),
+                sorted.map(function(s, i) {
+                  return R.createElement("div", { key:"b"+i,
+                    onClick: s.bk ? function(){openM("detail",s.bk);} : undefined,
+                    style: {
+                      position:"absolute",
+                      left:((s.ts-SS)/SD*100)+"%", width:((s.te-s.ts)/SD*100)+"%",
+                      top:4, bottom:4,
+                      background: s.org?"rgba(249,115,22,.2)":"rgba(96,165,250,.15)",
+                      border:"1px solid "+(s.org?"rgba(249,115,22,.5)":"rgba(96,165,250,.35)"),
+                      borderRadius:4, cursor:s.bk?"pointer":"default",
+                      overflow:"hidden", padding:"3px 6px",
+                      display:"flex", flexDirection:"column", justifyContent:"center"
+                    } },
+                    R.createElement("div", { style:{fontSize:10, fontWeight:700, color:s.org?"#fb923c":"#93c5fd", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"} }, s.name),
+                    R.createElement("div", { style:{fontSize:9, color:"#4a7aaa"} }, m2t(s.ts)+"\u2013"+m2t(s.te)));
+                })));
+          })));
+    }
+
+    // ── MONTH VIEW ───────────────────────────────────────────────────────────
+    return R.createElement("div", null,
+      tabs,
+      R.createElement("div", { style:{display:"flex", gap:12, marginBottom:10, flexWrap:"wrap", fontSize:11} },
+        R.createElement("span", null, R.createElement("span",{style:{color:"#34d399"}},"\u25a0"), " \u0412\u0441\u0451 \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u043e"),
+        R.createElement("span", null, R.createElement("span",{style:{color:"#fbbf24"}},"\u25a0"), " \u0427\u0430\u0441\u0442\u0438\u0447\u043d\u043e"),
+        R.createElement("span", null, R.createElement("span",{style:{color:"#ef4444"}},"\u25a0"), " \u0412\u0441\u0451 \u0437\u0430\u043d\u044f\u0442\u043e"),
+        R.createElement("span",{style:{color:"#3a5a80"}}, "\ud83d\udc46 \u041d\u0430\u0436\u043c\u0438 \u043d\u0430 \u0434\u0435\u043d\u044c")),
+      R.createElement("div", { style:{overflowX:"auto", borderRadius:12, border:"1px solid #1a2d4a"} },
+        R.createElement("table", { style:{borderCollapse:"collapse", fontSize:10} },
+          R.createElement("thead", null,
+            R.createElement("tr", null,
+              R.createElement("th", { style:{background:"#090e1a", padding:"6px 8px", color:"#3a5a70", fontWeight:700, position:"sticky", left:0, zIndex:5, width:60, textAlign:"left"} }, "\u041a\u041e\u0420\u0422"),
+              allDaysList.map(function(dk) {
+                var dt = ld(dk); var dow = dt.getDay();
+                var isWe = dow===0||dow===6; var isT = dk===todayKey;
+                return R.createElement("th", { key:dk,
+                  onClick:function(){setSelDay(dk);},
+                  style:{background:isT?"#0d2240":isWe?"#120c28":"#090e1a",
+                    color:isT?"#60a5fa":isWe?"#a78bfa":"#3a5a70",
+                    padding:"4px 2px", width:26, textAlign:"center", fontWeight:isT?800:600,
+                    borderLeft:isWe?"2px solid #2a1a4a":"1px solid #0d1520", cursor:"pointer"} },
+                  DWN[dow].slice(0,1), R.createElement("br"), dt.getDate());
+              }))),
+          R.createElement("tbody", null,
+            ALL_COURTS.map(function(ct, ci) {
+              return R.createElement("tr", { key:ct.id },
+                R.createElement("td", { style:{background:"#090e1a", color:"#60a5fa", padding:"5px 8px", fontWeight:700, fontSize:11,
+                  position:"sticky", left:0, zIndex:4, borderBottom:"1px solid #0d1520"} },
+                  ct.t==="fb"?"\u26bd":ct.t==="tn"?"\ud83c\udFBe":"\ud83c\udFd0", " ", ct.id),
+                allDaysList.map(function(dk) {
+                  var slots = (busyMap[dk] && busyMap[dk][ct.id]) ? busyMap[dk][ct.id] : [];
+                  var isWe = ld(dk).getDay()===0||ld(dk).getDay()===6;
+                  var isT = dk===todayKey;
+                  var allFree = slots.length===0;
+                  var allBusy = !allFree && [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22].every(function(h){
+                    return slots.some(function(s){return s.ts<=h*60&&s.te>h*60;});
+                  });
+                  var bg = allFree?"rgba(16,185,129,.08)":allBusy?"rgba(239,68,68,.12)":"rgba(251,191,36,.06)";
+                  var dot = allFree?"#34d399":allBusy?"#ef4444":"#fbbf24";
+                  return R.createElement("td", { key:dk, onClick:function(){setSelDay(dk);},
+                    style:{background:bg, borderLeft:isWe?"2px solid #2a1a4a":"1px solid #0d1520",
+                      borderBottom:"1px solid #0d1520", textAlign:"center", padding:"4px 2px",
+                      cursor:"pointer", width:26, verticalAlign:"middle"} },
+                    R.createElement("div", { style:{width:6, height:6, borderRadius:"50%", background:dot, margin:"0 auto"} }),
+                    slots.length>0 && R.createElement("div",{style:{fontSize:8, color:dot, marginTop:1}}, slots.length));
+                }));
+            }),
+            // Free hours summary row
+            R.createElement("tr", null,
+              R.createElement("td", { style:{background:"#090e1a", color:"#2a4a70", padding:"4px 8px",
+                fontWeight:700, fontSize:9, position:"sticky", left:0, zIndex:4} }, "\u0421\u0432. \u0447."),
+              allDaysList.map(function(dk) {
+                var isWe = ld(dk).getDay()===0||ld(dk).getDay()===6;
+                var free = 0;
+                for (var h=7; h<23; h++) {
+                  var allBusyH = ALL_COURTS.every(function(ct){
+                    var s = busyMap[dk]&&busyMap[dk][ct.id]?busyMap[dk][ct.id]:[];
+                    return s.some(function(b){return b.ts<=h*60&&b.te>h*60;});
+                  });
+                  if (!allBusyH) free++;
+                }
+                var col = free>=14?"#34d399":free>=8?"#fbbf24":"#ef4444";
+                return R.createElement("td", { key:dk, onClick:function(){setSelDay(dk);},
+                  style:{background:"#090e1a", color:col, textAlign:"center", fontSize:9,
+                    fontWeight:700, padding:"3px 2px",
+                    borderLeft:isWe?"2px solid #2a1a4a":"1px solid #0d1520", cursor:"pointer"} },
+                  free);
+              }))))));
   }
 
   function BookingsTab({ ctx }) {
