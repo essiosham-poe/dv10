@@ -207,7 +207,7 @@ react-dom/cjs/react-dom-client.production.js:
     { id: 10, name: "\u041A\u043E\u0440\u0442 10", t: "vb" },
     { id: 11, name: "\u0424\u0443\u0442\u0431\u043E\u043B", t: "fb" }
   ];
-  const TS = 8 * 60;
+  const TS = 7 * 60;
   const TE = 23 * 60;
   const STEP = 30;
   const NSLOTS = (TE - TS) / STEP;
@@ -410,11 +410,9 @@ react-dom/cjs/react-dom-client.production.js:
     return __spreadProps(__spreadValues({}, b), { slots: legacySlots(b), ballCount: b.ballCount || 0, ballStorage: b.ballStorage || false });
   }
   function App() {
-    // Режим просмотра: ?view=1 в URL или ?view=KEY
-    const urlParams = new URLSearchParams(window.location.search);
-    const isViewOnly = urlParams.get("view") === "1" || urlParams.get("v") === "1";
+    const isViewOnly = false;
     const [data, setData] = useState(null);
-    const [tab, setTab] = useState(isViewOnly ? "load" : "today");
+    const [tab, setTab] = useState("today");
     const [sel, setSel] = useState(dkey(/* @__PURE__ */ new Date()));
     const [modal, setModal] = useState(null);
     const [toast, setToast] = useState(null);
@@ -548,7 +546,7 @@ react-dom/cjs/react-dom-client.production.js:
       setToast({ msg, type });
       setTimeout(() => setToast(null), 3e3);
     };
-    const open = (type, payload = null) => { if (isViewOnly && (type === "booking" || type === "org")) return; setModal({ type, payload }); };
+    const open = (type, payload = null) => { setModal({ type, payload }); };
     const close = () => setModal(null);
     if (!data) return /* @__PURE__ */ React.createElement("div", { style: {
       display: "flex",
@@ -576,11 +574,11 @@ react-dom/cjs/react-dom-client.production.js:
       { id: "load", icon: "\u{1F4CA}", label: "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430" },
       { id: "notes", icon: "\u{1F4DD}", label: "\u0411\u043B\u043E\u043A\u043D\u043E\u0442" },
       { id: "set", icon: "\u2699\uFE0F", label: "\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438" }
-    ].filter(t => !isViewOnly || ["load","month","today"].includes(t.id));
-    return /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "'DM Sans',-apple-system,sans-serif", minHeight: "100vh", background: "#050a14", color: "#ddeeff" } }, /* @__PURE__ */ React.createElement("style", null, CSS), !weekFull && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("header", { className: "hdr" }, /* @__PURE__ */ React.createElement("div", { className: "hdr-logo" }, /* @__PURE__ */ React.createElement("svg", { width: "32", height: "32", viewBox: "0 0 32 32", className: "logo-ball" }, /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "#1a3060", stroke: "#60a5fa", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "url(#bv_grad)", stroke: "#2a5a9a", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("radialGradient", { id: "bv_grad", cx: "35%", cy: "30%" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#3a6abb" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#0a1830" }))), /* @__PURE__ */ React.createElement("path", { d: "M16 1 Q24 8 31 16 Q24 24 16 31 Q8 24 1 16 Q8 8 16 1Z", fill: "none", stroke: "#fbbf24", strokeWidth: "1.2", opacity: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M1 16 Q8 8 16 1 Q20 10 18 16 Q20 22 16 31 Q8 24 1 16Z", fill: "#1e4a9a", opacity: "0.5" }), /* @__PURE__ */ React.createElement("path", { d: "M31 16 Q24 24 16 31 Q12 22 14 16 Q12 10 16 1 Q24 8 31 16Z", fill: "#fbbf2422", opacity: "0.6" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "4", fill: "none", stroke: "#fbbf2466", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M10 6 Q16 12 22 6", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M6 22 Q12 16 6 10", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M26 10 Q20 16 26 22", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "logo-title" }, "DYNAMO VODNY"))), /* @__PURE__ */ React.createElement("div", { className: "hdr-actions" }, isViewOnly && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#2a5a40", background: "#0a1a10", border: "1px solid #1e4a2a", borderRadius: 20, padding: "4px 12px" } }, "\u{1F440} \u0420\u0435\u0436\u0438\u043C \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u0430"), !isViewOnly && conflicts.length > 0 && /* @__PURE__ */ React.createElement("button", { className: "conflict-pill", onClick: () => setTab("alerts") }, "\u26A0\uFE0F ", conflicts.length), remAlert && /* @__PURE__ */ React.createElement("button", { className: "rem-pill", onClick: () => {
+    ];
+    return /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "'DM Sans',-apple-system,sans-serif", minHeight: "100vh", background: "#050a14", color: "#ddeeff" } }, /* @__PURE__ */ React.createElement("style", null, CSS), !weekFull && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("header", { className: "hdr" }, /* @__PURE__ */ React.createElement("div", { className: "hdr-logo" }, /* @__PURE__ */ React.createElement("svg", { width: "32", height: "32", viewBox: "0 0 32 32", className: "logo-ball" }, /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "#1a3060", stroke: "#60a5fa", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "url(#bv_grad)", stroke: "#2a5a9a", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("radialGradient", { id: "bv_grad", cx: "35%", cy: "30%" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#3a6abb" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#0a1830" }))), /* @__PURE__ */ React.createElement("path", { d: "M16 1 Q24 8 31 16 Q24 24 16 31 Q8 24 1 16 Q8 8 16 1Z", fill: "none", stroke: "#fbbf24", strokeWidth: "1.2", opacity: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M1 16 Q8 8 16 1 Q20 10 18 16 Q20 22 16 31 Q8 24 1 16Z", fill: "#1e4a9a", opacity: "0.5" }), /* @__PURE__ */ React.createElement("path", { d: "M31 16 Q24 24 16 31 Q12 22 14 16 Q12 10 16 1 Q24 8 31 16Z", fill: "#fbbf2422", opacity: "0.6" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "4", fill: "none", stroke: "#fbbf2466", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M10 6 Q16 12 22 6", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M6 22 Q12 16 6 10", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M26 10 Q20 16 26 22", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "logo-title" }, "DYNAMO VODNY"))), /* @__PURE__ */ React.createElement("div", { className: "hdr-actions" }, conflicts.length > 0 && /* @__PURE__ */ React.createElement("button", { className: "conflict-pill", onClick: () => setTab("alerts") }, "\u26A0\uFE0F ", conflicts.length), remAlert && /* @__PURE__ */ React.createElement("button", { className: "rem-pill", onClick: () => {
       setTab("notes");
       setRemAlert(null);
-    } }, "\u{1F514} ", remAlert.text.slice(0, 18), "\u2026"), syncSt !== "idle" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 5, background: "#0a1525", border: "1px solid #1e4a2a", borderRadius: 20, padding: "5px 10px", fontSize: 11, color: syncSt === "saved" ? "#34d399" : syncSt === "error" ? "#ef4444" : "#fbbf24" } }, /* @__PURE__ */ React.createElement("div", { style: { width: 6, height: 6, borderRadius: "50%", background: "currentColor", flexShrink: 0 } }), syncSt === "saved" ? `\u2601\uFE0F ${syncMsg}` : syncSt === "saving" ? "\u2601\uFE0F \u0421\u043E\u0445\u0440\u2026" : syncSt === "loading" ? "\u2601\uFE0F \u0417\u0430\u0433\u0440\u2026" : "\u26A0\uFE0F"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("calc", null) }, "\u{1F9EE}"), !isViewOnly && /* @__PURE__ */ React.createElement("button", { className: "btn btn-ai", onClick: () => open("ai", null) }, "\u{1F916} \u0410\u0441\u0441\u0438\u0441\u0442\u0435\u043D\u0442"), !isViewOnly && /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => open("booking", null) }, "\uFF0B \u0411\u0440\u043E\u043D\u044C"))), /* @__PURE__ */ React.createElement("nav", { className: "nav" }, TABS.map((t) => /* @__PURE__ */ React.createElement("button", { key: t.id, className: `ntab${tab === t.id ? " ntab-on" : ""}`, onClick: () => setTab(t.id) }, /* @__PURE__ */ React.createElement("span", null, t.icon), /* @__PURE__ */ React.createElement("span", { className: "ntab-lbl" }, t.label), (t.badge || 0) > 0 && /* @__PURE__ */ React.createElement("span", { className: "nbadge" }, t.badge))))), /* @__PURE__ */ React.createElement("main", { className: weekFull ? "wfull-main" : "main" }, tab === "today" && /* @__PURE__ */ React.createElement(TodayTab, { ctx }), tab === "week" && /* @__PURE__ */ React.createElement(WeekTab, { ctx }), tab === "sched" && /* @__PURE__ */ React.createElement(DayTab, { ctx }), tab === "month" && /* @__PURE__ */ React.createElement(MonthTab, { ctx, onDay: (d) => {
+    } }, "\u{1F514} ", remAlert.text.slice(0, 18), "\u2026"), syncSt !== "idle" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 5, background: "#0a1525", border: "1px solid #1e4a2a", borderRadius: 20, padding: "5px 10px", fontSize: 11, color: syncSt === "saved" ? "#34d399" : syncSt === "error" ? "#ef4444" : "#fbbf24" } }, /* @__PURE__ */ React.createElement("div", { style: { width: 6, height: 6, borderRadius: "50%", background: "currentColor", flexShrink: 0 } }), syncSt === "saved" ? `\u2601\uFE0F ${syncMsg}` : syncSt === "saving" ? "\u2601\uFE0F \u0421\u043E\u0445\u0440\u2026" : syncSt === "loading" ? "\u2601\uFE0F \u0417\u0430\u0433\u0440\u2026" : "\u26A0\uFE0F"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("calc", null) }, "\u{1F9EE}"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ai", onClick: () => open("ai", null) }, "\u{1F916} \u0410\u0441\u0441\u0438\u0441\u0442\u0435\u043D\u0442"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => open("booking", null) }, "\uFF0B \u0411\u0440\u043E\u043D\u044C"))), /* @__PURE__ */ React.createElement("nav", { className: "nav" }, TABS.map((t) => /* @__PURE__ */ React.createElement("button", { key: t.id, className: `ntab${tab === t.id ? " ntab-on" : ""}`, onClick: () => setTab(t.id) }, /* @__PURE__ */ React.createElement("span", null, t.icon), /* @__PURE__ */ React.createElement("span", { className: "ntab-lbl" }, t.label), (t.badge || 0) > 0 && /* @__PURE__ */ React.createElement("span", { className: "nbadge" }, t.badge))))), /* @__PURE__ */ React.createElement("main", { className: weekFull ? "wfull-main" : "main" }, tab === "today" && /* @__PURE__ */ React.createElement(TodayTab, { ctx }), tab === "week" && /* @__PURE__ */ React.createElement(WeekTab, { ctx }), tab === "sched" && /* @__PURE__ */ React.createElement(DayTab, { ctx }), tab === "month" && /* @__PURE__ */ React.createElement(MonthTab, { ctx, onDay: (d) => {
       setSel(d);
       setTab("sched");
     } }), tab === "bks" && /* @__PURE__ */ React.createElement(BookingsTab, { ctx }), tab === "orgs" && /* @__PURE__ */ React.createElement(OrgsTab, { ctx }), tab === "alerts" && /* @__PURE__ */ React.createElement(AlertsTab, { ctx }), tab === "fin" && /* @__PURE__ */ React.createElement(FinTab, { ctx }), tab === "load" && /* @__PURE__ */ React.createElement(LoadTab, { ctx }), tab === "notes" && /* @__PURE__ */ React.createElement(NotesTab, { ctx }), tab === "free" && /* @__PURE__ */ React.createElement(FreeTab, { ctx }), tab === "set" && /* @__PURE__ */ React.createElement(SettingsTab, { ctx })), (modal == null ? void 0 : modal.type) === "booking" && /* @__PURE__ */ React.createElement(BookingModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "org" && /* @__PURE__ */ React.createElement(OrgModal, { ctx, ob: modal.payload }), (modal == null ? void 0 : modal.type) === "detail" && /* @__PURE__ */ React.createElement(DetailModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "pay" && /* @__PURE__ */ React.createElement(PayModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "sessions" && /* @__PURE__ */ React.createElement(SessionsModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "summary" && /* @__PURE__ */ React.createElement(SummaryModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "orgsumm" && /* @__PURE__ */ React.createElement(OrgSummaryModal, { ctx, ob: modal.payload }), (modal == null ? void 0 : modal.type) === "calc" && /* @__PURE__ */ React.createElement(CalcModal, { onClose: close }), (modal == null ? void 0 : modal.type) === "ai" && /* @__PURE__ */ React.createElement(AiModal, { ctx, onClose: close }), toast && /* @__PURE__ */ React.createElement("div", { className: `toast toast-${toast.type}` }, toast.msg));
@@ -1023,7 +1021,7 @@ react-dom/cjs/react-dom-client.production.js:
           R.createElement("div", { style: { fontWeight:700, fontSize:16, color:"#c0d8f0" } },
             DWN[dow2], " ", dt2.getDate(), " ", MO.label, " ", y),
           isWe2 && R.createElement("span", { style: { fontSize:11, color:"#a78bfa", background:"#1a0a3a", borderRadius:6, padding:"2px 8px" } }, "\u0412\u044b\u0445\u043e\u0434\u043d\u043e\u0439"),
-          !isViewOnly && R.createElement("button", { className:"btn btn-primary btn-sm", style:{marginLeft:"auto"},
+          R.createElement("button", { className:"btn btn-primary btn-sm", style:{marginLeft:"auto"},
             onClick:function(){openM("booking",{_prefDate:selDay});} }, "+ \u0411\u0440\u043e\u043d\u044c")),
         R.createElement("div", { style: { borderRadius:12, border:"1px solid #1a2d4a", overflow:"hidden" } },
           // Time ruler header
@@ -1058,19 +1056,19 @@ react-dom/cjs/react-dom-client.production.js:
               R.createElement("div", { style: { width:70, flexShrink:0, padding:"8px", borderRight:"1px solid #1a2d4a",
                 display:"flex", flexDirection:"column", justifyContent:"center" } },
                 R.createElement("div", { style:{fontSize:11, fontWeight:700, color:"#60a5fa"} },
-                  ct.t==="fb"?"\u26bd":ct.t==="tn"?"\ud83c\udFBe":"\ud83c\udFd0", " \u21161", ct.id),
+                  ct.t==="fb"?"\u26bd":ct.t==="tn"?"\ud83c\udFBe":"\ud83c\udFd0", " \u2116", ct.id),
                 R.createElement("div", { style:{fontSize:9, color:"#2a4a70", marginTop:2} },
                   slots.length ? slots.length + " \u0431\u0440." : "\u0441\u0432\u043e\u0431\u043e\u0434\u043d\u043e")),
               R.createElement("div", { style: { flex:1, position:"relative", minHeight:56 } },
                 freeRanges.map(function(fr, i) {
                   return R.createElement("div", { key:"f"+i,
-                    onClick: !isViewOnly ? function(){openM("booking",{_prefDate:selDay,_prefCourt:ct.id});} : undefined,
+                    onClick: function(){openM("booking",{_prefDate:selDay,_prefCourt:ct.id});} ,
                     style: {
                       position:"absolute",
                       left:((fr.ts-SS)/SD*100)+"%", width:((fr.te-fr.ts)/SD*100)+"%",
                       top:4, bottom:4,
                       background:"rgba(16,185,129,.08)", border:"1px dashed rgba(16,185,129,.3)",
-                      borderRadius:4, cursor:isViewOnly?"default":"pointer",
+                      borderRadius:4, cursor:"pointer",
                       display:"flex", alignItems:"center", justifyContent:"center"
                     } },
                     R.createElement("span", { style:{fontSize:9, color:"#34d399", fontWeight:600} },
@@ -1597,7 +1595,185 @@ react-dom/cjs/react-dom-client.production.js:
     const removeSpecificDate = (idx, dateStr) => {
       updSlot(idx, "specificDates", (f.slots[idx].specificDates || []).filter(d => d !== dateStr));
     };
+    const specH = (specialPrices || {})[f.clientName] || f.customPricePerHour || 0;
+    const total = calcTotal({ ...f, id: "_" }, prices, specialPrices);
+    const balance = total - (Number(f.totalPaid) || 0);
+    const DLBLS = ["\u0412\u0441","\u041f\u043d","\u0412\u0442","\u0421\u0440","\u0427\u0442","\u041f\u0442","\u0421\u0431"];
+    const ST_COLORS = { ok:"#34d399", cancel_client:"#ef4444", cancel_club:"#f97316", moved:"#a78bfa" };
+
+    function courtStatus(slIdx, courtId) {
+      const sl = f.slots[slIdx];
+      if (!sl) return null;
+      const dates = slotDates(sl);
+      for (const bk2 of bookings) {
+        if (bk2.id === bk?.id) continue;
+        for (const sl2 of (bk2.slots || legacySlots(bk2))) {
+          if (!(sl2.courts || []).includes(courtId)) continue;
+          const shared = dates.filter(d => slotDates(sl2).includes(d));
+          if (shared.length > 0) return "conflict";
+        }
+      }
+      return null;
+    }
+
+    const submit = () => {
+      if (!f.clientName.trim()) { toast("\u0418\u043c\u044f \u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u043e", "err"); return; }
+      if (!f.slots.some(sl => slotDates(sl).length > 0)) { toast("\u0414\u043e\u0431\u0430\u0432\u044c\u0442\u0435 \u0434\u0430\u0442\u0443 \u0438 \u0434\u043d\u0438", "err"); return; }
+      const nb = { ...(bk || {}), ...f, id: bk?.id || uid(), slots: f.slots };
+      save({ ...data, bookings: bk?.id ? data.bookings.map(b => b.id === bk.id ? nb : b) : [...data.bookings, nb] });
+      toast(bk?.id ? "\u0411\u0440\u043e\u043d\u044c \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0430" : "\u0411\u0440\u043e\u043d\u044c \u0441\u043e\u0437\u0434\u0430\u043d\u0430 \u2705");
+      close();
+    };
+
+    const R = React;
+    const CE = R.createElement;
+
+    return CE("div", { className: "overlay", onClick: e => e.target === e.currentTarget && close() },
+      CE("div", { className: "modal", style: { maxWidth: 560 } },
+        CE("div", { className: "modal-header" },
+          CE("div", { className: "mh" }, isEdit ? "\u270f\ufe0f \u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435" : "\u2795 \u041d\u043e\u0432\u0430\u044f \u0431\u0440\u043e\u043d\u044c"),
+          CE("button", { className: "icon-btn", onClick: close }, "\u2715")),
+        CE("div", { className: "modal-body" },
+
+          // Client name
+          CE("label", { className: "lbl" }, "\u0418\u043c\u044f \u043a\u043b\u0438\u0435\u043d\u0442\u0430 *"),
+          CE("input", { className: "inp", value: f.clientName, autoFocus: true,
+            placeholder: "\u0424\u0430\u043c\u0438\u043b\u0438\u044f \u0418\u043c\u044f...",
+            onChange: e => upd("clientName", e.target.value) }),
+
+          // Phone + Telegram row
+          CE("div", { className: "form-grid", style: { marginTop: 10 } },
+            CE("div", null,
+              CE("label", { className: "lbl" }, "\u0422\u0435\u043b\u0435\u0444\u043e\u043d"),
+              CE("input", { className: "inp", value: f.phone, placeholder: "+7...",
+                onChange: e => upd("phone", e.target.value) })),
+            CE("div", null,
+              CE("label", { className: "lbl" }, "Telegram"),
+              CE("input", { className: "inp", value: f.telegram, placeholder: "@username",
+                onChange: e => upd("telegram", e.target.value) }))),
+
+          // Slots
+          CE("div", { style: { marginTop: 14 } },
+            f.slots.map((sl, idx) => {
+              const dates = slotDates(sl);
+              const cost = slotRate(sl, prices, specH) * dates.length;
+              return CE("div", { key: sl.id, style: {
+                background: "#080e1c", border: "1px solid #1a2d4a",
+                borderRadius: 10, padding: 12, marginBottom: 10
+              } },
+                // Slot header
+                CE("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 } },
+                  CE("div", { style: { fontWeight: 700, fontSize: 13, color: "#60a5fa" } },
+                    "\u0421\u043b\u043e\u0442 " + (idx + 1)),
+                  f.slots.length > 1 && CE("button", { className: "icon-btn", onClick: () => delSlot(idx) }, "\u2715")),
+
+                // Courts
+                CE("label", { className: "lbl" }, "\u041f\u043b\u043e\u0449\u0430\u0434\u043a\u0438"),
+                CE("div", { style: { display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 } },
+                  ALL_COURTS.map(ct => {
+                    const sel = sl.courts.includes(ct.id);
+                    const st = courtStatus(idx, ct.id);
+                    return CE("button", { key: ct.id,
+                      className: "btn btn-sm " + (sel ? "btn-primary" : "btn-ghost"),
+                      style: st === "conflict" ? { borderColor: "#ef4444", color: "#ef4444" } : {},
+                      onClick: () => toggleSlotCourt(idx, ct.id) },
+                      (ct.t === "fb" ? "\u26bd" : "\ud83c\udfd0") + " \u2116" + ct.id,
+                      st === "conflict" && CE("span", { style: { marginLeft: 4, color: "#ef4444" } }, "!")
+                    );
+                  })),
+
+                // Days mode toggle
+                CE("div", { style: { display: "flex", gap: 6, marginBottom: 8, alignItems: "center" } },
+                  CE("label", { className: "lbl", style: { margin: 0, flex: 1 } }, "\u0414\u043d\u0438"),
+                  CE("div", { style: { display: "flex", gap: 4, background: "#0a1020", borderRadius: 7, padding: 3 } },
+                    CE("button", { className: "btn btn-sm " + (!sl.specificDates ? "btn-primary" : "btn-ghost"),
+                      style: { fontSize: 11 }, onClick: () => toggleSlotMode(idx) }, "\u0414\u043d\u0438 \u043d\u0435\u0434."),
+                    CE("button", { className: "btn btn-sm " + (sl.specificDates ? "btn-primary" : "btn-ghost"),
+                      style: { fontSize: 11 }, onClick: () => toggleSlotMode(idx) }, "\u041a\u043e\u043d\u043a\u0440\u0435\u0442\u043d\u044b\u0435"))),
+
+                !sl.specificDates
+                  ? CE("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10 } },
+                      [1,2,3,4,5,6,0].map(d => CE("button", { key: d,
+                        className: "btn btn-sm " + (sl.dow.includes(d) ? "btn-primary" : "btn-ghost"),
+                        onClick: () => toggleSlotDow(idx, d) }, DLBLS[d])))
+                  : CE("div", { style: { marginBottom: 10 } },
+                      CE("div", { style: { display: "flex", gap: 6, marginBottom: 6 } },
+                        CE("input", { type: "date", className: "inp inp-sm", style: { flex: 1 },
+                          onChange: e => { addSpecificDate(idx, e.target.value); e.target.value = ""; } }),
+                        CE("span", { style: { fontSize: 11, color: "#3a5a70", alignSelf: "center" } }, "\u2190 \u0432\u044b\u0431\u0435\u0440\u0438 \u0434\u0430\u0442\u0443")),
+                      CE("div", { style: { display: "flex", flexWrap: "wrap", gap: 4 } },
+                        (sl.specificDates || []).map(sd => {
+                          const dt = ld(sd);
+                          return CE("div", { key: sd, style: {
+                            display: "flex", alignItems: "center", gap: 4,
+                            background: "#1a2a40", border: "1px solid #2a4a6a",
+                            borderRadius: 6, padding: "3px 8px", fontSize: 12
+                          } },
+                            CE("span", { style: { color: "#c0d8f0" } },
+                              ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"][dt.getMonth()] + " " + dt.getDate()),
+                            CE("button", { style: { background: "none", border: "none", color: "#ef4444",
+                              cursor: "pointer", fontSize: 12, padding: 0 },
+                              onClick: () => removeSpecificDate(idx, sd) }, "\u00d7"));
+                        }))),
+
+                // Date range (only in DOW mode)
+                !sl.specificDates && CE("div", { className: "form-grid", style: { marginBottom: 8 } },
+                  CE("div", null,
+                    CE("label", { className: "lbl" }, "\u0421 \u0434\u0430\u0442\u044b"),
+                    CE("input", { type: "date", className: "inp", value: sl.startDate,
+                      onChange: e => updSlot(idx, "startDate", e.target.value) })),
+                  CE("div", null,
+                    CE("label", { className: "lbl" }, "\u041f\u043e \u0434\u0430\u0442\u0443"),
+                    CE("input", { type: "date", className: "inp", value: sl.endDate,
+                      onChange: e => updSlot(idx, "endDate", e.target.value) }))),
+
+                // Time
+                CE("div", { className: "form-grid", style: { marginBottom: 8 } },
+                  CE("div", null,
+                    CE("label", { className: "lbl" }, "\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430"),
+                    CE("input", { type: "time", className: "inp", value: sl.timeStart, step: "1800",
+                      onChange: e => updSlot(idx, "timeStart", e.target.value) })),
+                  CE("div", null,
+                    CE("label", { className: "lbl" }, "\u0412\u0440\u0435\u043c\u044f \u043e\u043a\u043e\u043d\u0447\u0430\u043d\u0438\u044f"),
+                    CE("input", { type: "time", className: "inp", value: sl.timeEnd, step: "1800",
+                      onChange: e => updSlot(idx, "timeEnd", e.target.value) }))),
+
+                // Slot summary
+                dates.length > 0 && CE("div", { style: {
+                  fontSize: 11, color: "#34d399", background: "rgba(52,211,153,.06)",
+                  border: "1px solid rgba(52,211,153,.15)", borderRadius: 6, padding: "6px 10px"
+                } }, dates.length + " \u0437\u0430\u043d\u044f\u0442\u0438\u0439 \u00b7 " + cost.toLocaleString() + " \u20bd")
+              );
+            }),
+
+            // Add slot button
+            CE("button", { className: "btn btn-ghost btn-sm", onClick: addSlot },
+              "+ \u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0441\u043b\u043e\u0442")),
+
+          // Notes
+          CE("div", { style: { marginTop: 10 } },
+            CE("label", { className: "lbl" }, "\u041f\u0440\u0438\u043c\u0435\u0447\u0430\u043d\u0438\u044f"),
+            CE("textarea", { className: "inp", rows: 2, value: f.notes,
+              style: { resize: "vertical" },
+              onChange: e => upd("notes", e.target.value) })),
+
+          // Total
+          total > 0 && CE("div", { style: {
+            marginTop: 12, padding: "10px 14px",
+            background: "rgba(96,165,250,.06)", border: "1px solid rgba(96,165,250,.15)",
+            borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center"
+          } },
+            CE("span", { style: { fontSize: 13, color: "#4a6a8a" } }, "\u0418\u0442\u043e\u0433\u043e:"),
+            CE("span", { style: { fontSize: 16, fontWeight: 800, color: "#60a5fa" } },
+              total.toLocaleString() + " \u20bd")),
+
+          // Footer buttons
+          CE("div", { style: { display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 14 } },
+            CE("button", { className: "btn btn-ghost", onClick: close }, "\u041e\u0442\u043c\u0435\u043d\u0430"),
+            CE("button", { className: "btn btn-primary", onClick: submit },
+              isEdit ? "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c" : "\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0431\u0440\u043e\u043d\u044c")))));
   }
+
   function OrgModal({ ctx, ob }) {
     const { data, save, toast, close } = ctx;
     const [f, setF] = useState({
