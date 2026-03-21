@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="theme-color" content="#050a14"/>
-<title>Dynamo Vodny 🏐</title>
+<title>DV Arenda 🏐</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:#050a14;min-height:100vh;font-family:sans-serif;}
@@ -948,7 +948,7 @@ react-dom/cjs/react-dom-client.production.js:
     var data = ctx.data, openM = ctx.open, isViewOnly = ctx.isViewOnly;
     var bookings = data.bookings, orgBookings = data.orgBookings;
     var now2 = new Date();
-    var sYear = now2.getMonth() >= 4 ? now2.getFullYear() : now2.getFullYear() - 1;
+    var sYear = now2.getFullYear(); // всегда текущий год
     var MONTHS = [
       { y: sYear, m: 4, label: "Май" },
       { y: sYear, m: 5, label: "Июнь" },
@@ -956,7 +956,7 @@ react-dom/cjs/react-dom-client.production.js:
       { y: sYear, m: 7, label: "Август" },
       { y: sYear, m: 8, label: "Сентябрь" }
     ];
-    var curMonthIdx = MONTHS.findIndex(function(mo) { return mo.m === now2.getMonth(); });
+    var curMonthIdx = MONTHS.findIndex(function(mo) { return mo.m === now2.getMonth(); }); if (curMonthIdx < 0) curMonthIdx = 1; // default Июнь
     var R = React;
     var selMState = R.useState(curMonthIdx >= 0 ? curMonthIdx : 0);
     var selM = selMState[0], setSelM = selMState[1];
@@ -1597,17 +1597,15 @@ react-dom/cjs/react-dom-client.production.js:
     };
     const specH = (specialPrices || {})[f.clientName] || f.customPricePerHour || 0;
     const total = calcTotal({ ...f, id: "_" }, prices, specialPrices);
-    const balance = total - (Number(f.totalPaid) || 0);
     const DLBLS = ["\u0412\u0441","\u041f\u043d","\u0412\u0442","\u0421\u0440","\u0427\u0442","\u041f\u0442","\u0421\u0431"];
-    const ST_COLORS = { ok:"#34d399", cancel_client:"#ef4444", cancel_club:"#f97316", moved:"#a78bfa" };
 
     function courtStatus(slIdx, courtId) {
       const sl = f.slots[slIdx];
       if (!sl) return null;
       const dates = slotDates(sl);
       for (const bk2 of bookings) {
-        if (bk2.id === bk?.id) continue;
-        for (const sl2 of (bk2.slots || legacySlots(bk2))) {
+        if (bk2.id === (bk == null ? void 0 : bk.id)) continue;
+        for (const sl2 of ((bk2.slots) || legacySlots(bk2))) {
           if (!(sl2.courts || []).includes(courtId)) continue;
           const shared = dates.filter(d => slotDates(sl2).includes(d));
           if (shared.length > 0) return "conflict";
@@ -1619,161 +1617,136 @@ react-dom/cjs/react-dom-client.production.js:
     const submit = () => {
       if (!f.clientName.trim()) { toast("\u0418\u043c\u044f \u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u043e", "err"); return; }
       if (!f.slots.some(sl => slotDates(sl).length > 0)) { toast("\u0414\u043e\u0431\u0430\u0432\u044c\u0442\u0435 \u0434\u0430\u0442\u0443 \u0438 \u0434\u043d\u0438", "err"); return; }
-      const nb = { ...(bk || {}), ...f, id: bk?.id || uid(), slots: f.slots };
-      save({ ...data, bookings: bk?.id ? data.bookings.map(b => b.id === bk.id ? nb : b) : [...data.bookings, nb] });
-      toast(bk?.id ? "\u0411\u0440\u043e\u043d\u044c \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0430" : "\u0411\u0440\u043e\u043d\u044c \u0441\u043e\u0437\u0434\u0430\u043d\u0430 \u2705");
+      const nb = { ...(bk || {}), ...f, id: (bk == null ? void 0 : bk.id) || uid() };
+      save({ ...data, bookings: (bk == null ? void 0 : bk.id) ? data.bookings.map(b => b.id === bk.id ? nb : b) : [...data.bookings, nb] });
+      toast((bk == null ? void 0 : bk.id) ? "\u0411\u0440\u043e\u043d\u044c \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0430" : "\u0411\u0440\u043e\u043d\u044c \u0441\u043e\u0437\u0434\u0430\u043d\u0430 \u2705");
       close();
     };
 
-    const R = React;
-    const CE = R.createElement;
+    return /* @__PURE__ */ React.createElement("div", { className: "overlay", onClick: (e) => e.target === e.currentTarget && close() },
+      /* @__PURE__ */ React.createElement("div", { className: "modal", style: { maxWidth: 540 } },
+        /* @__PURE__ */ React.createElement("div", { className: "modal-header" },
+          /* @__PURE__ */ React.createElement("div", { className: "mh" }, isEdit ? "\u270f\ufe0f \u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435" : "\u2795 \u041d\u043e\u0432\u0430\u044f \u0431\u0440\u043e\u043d\u044c"),
+          /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: close }, "\u2715")),
+        /* @__PURE__ */ React.createElement("div", { className: "modal-body" },
 
-    return CE("div", { className: "overlay", onClick: e => e.target === e.currentTarget && close() },
-      CE("div", { className: "modal", style: { maxWidth: 560 } },
-        CE("div", { className: "modal-header" },
-          CE("div", { className: "mh" }, isEdit ? "\u270f\ufe0f \u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435" : "\u2795 \u041d\u043e\u0432\u0430\u044f \u0431\u0440\u043e\u043d\u044c"),
-          CE("button", { className: "icon-btn", onClick: close }, "\u2715")),
-        CE("div", { className: "modal-body" },
-
-          // Client name
-          CE("label", { className: "lbl" }, "\u0418\u043c\u044f \u043a\u043b\u0438\u0435\u043d\u0442\u0430 *"),
-          CE("input", { className: "inp", value: f.clientName, autoFocus: true,
+          /* @__PURE__ */ React.createElement("label", { className: "lbl" }, "\u0418\u043c\u044f \u043a\u043b\u0438\u0435\u043d\u0442\u0430 *"),
+          /* @__PURE__ */ React.createElement("input", { className: "inp", value: f.clientName, autoFocus: true,
             placeholder: "\u0424\u0430\u043c\u0438\u043b\u0438\u044f \u0418\u043c\u044f...",
-            onChange: e => upd("clientName", e.target.value) }),
+            onChange: (e) => upd("clientName", e.target.value) }),
 
-          // Phone + Telegram row
-          CE("div", { className: "form-grid", style: { marginTop: 10 } },
-            CE("div", null,
-              CE("label", { className: "lbl" }, "\u0422\u0435\u043b\u0435\u0444\u043e\u043d"),
-              CE("input", { className: "inp", value: f.phone, placeholder: "+7...",
-                onChange: e => upd("phone", e.target.value) })),
-            CE("div", null,
-              CE("label", { className: "lbl" }, "Telegram"),
-              CE("input", { className: "inp", value: f.telegram, placeholder: "@username",
-                onChange: e => upd("telegram", e.target.value) }))),
+          /* @__PURE__ */ React.createElement("div", { className: "form-grid", style: { marginTop: 10 } },
+            /* @__PURE__ */ React.createElement("div", null,
+              /* @__PURE__ */ React.createElement("label", { className: "lbl" }, "\u0422\u0435\u043b\u0435\u0444\u043e\u043d"),
+              /* @__PURE__ */ React.createElement("input", { className: "inp", value: f.phone, placeholder: "+7...",
+                onChange: (e) => upd("phone", e.target.value) })),
+            /* @__PURE__ */ React.createElement("div", null,
+              /* @__PURE__ */ React.createElement("label", { className: "lbl" }, "Telegram"),
+              /* @__PURE__ */ React.createElement("input", { className: "inp", value: f.telegram, placeholder: "@username",
+                onChange: (e) => upd("telegram", e.target.value) }))),
 
-          // Slots
-          CE("div", { style: { marginTop: 14 } },
+          /* @__PURE__ */ React.createElement("div", { style: { marginTop: 14 } },
             f.slots.map((sl, idx) => {
               const dates = slotDates(sl);
               const cost = slotRate(sl, prices, specH) * dates.length;
-              return CE("div", { key: sl.id, style: {
-                background: "#080e1c", border: "1px solid #1a2d4a",
-                borderRadius: 10, padding: 12, marginBottom: 10
-              } },
-                // Slot header
-                CE("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 } },
-                  CE("div", { style: { fontWeight: 700, fontSize: 13, color: "#60a5fa" } },
+              return /* @__PURE__ */ React.createElement("div", { key: sl.id, className: "form-section" },
+                /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 } },
+                  /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 13, color: "#60a5fa" } },
                     "\u0421\u043b\u043e\u0442 " + (idx + 1)),
-                  f.slots.length > 1 && CE("button", { className: "icon-btn", onClick: () => delSlot(idx) }, "\u2715")),
+                  f.slots.length > 1 && /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: () => delSlot(idx) }, "\u2715")),
 
-                // Courts
-                CE("label", { className: "lbl" }, "\u041f\u043b\u043e\u0449\u0430\u0434\u043a\u0438"),
-                CE("div", { style: { display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 } },
-                  ALL_COURTS.map(ct => {
+                /* @__PURE__ */ React.createElement("label", { className: "lbl" }, "\u041f\u043b\u043e\u0449\u0430\u0434\u043a\u0438"),
+                /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 } },
+                  ALL_COURTS.map((ct) => {
                     const sel = sl.courts.includes(ct.id);
                     const st = courtStatus(idx, ct.id);
-                    return CE("button", { key: ct.id,
+                    return /* @__PURE__ */ React.createElement("button", { key: ct.id,
                       className: "btn btn-sm " + (sel ? "btn-primary" : "btn-ghost"),
                       style: st === "conflict" ? { borderColor: "#ef4444", color: "#ef4444" } : {},
                       onClick: () => toggleSlotCourt(idx, ct.id) },
                       (ct.t === "fb" ? "\u26bd" : "\ud83c\udfd0") + " \u2116" + ct.id,
-                      st === "conflict" && CE("span", { style: { marginLeft: 4, color: "#ef4444" } }, "!")
-                    );
+                      st === "conflict" && /* @__PURE__ */ React.createElement("span", { style: { marginLeft: 4, color: "#ef4444" } }, "!"));
                   })),
 
-                // Days mode toggle
-                CE("div", { style: { display: "flex", gap: 6, marginBottom: 8, alignItems: "center" } },
-                  CE("label", { className: "lbl", style: { margin: 0, flex: 1 } }, "\u0414\u043d\u0438"),
-                  CE("div", { style: { display: "flex", gap: 4, background: "#0a1020", borderRadius: 7, padding: 3 } },
-                    CE("button", { className: "btn btn-sm " + (!sl.specificDates ? "btn-primary" : "btn-ghost"),
+                /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, marginBottom: 10, alignItems: "center" } },
+                  /* @__PURE__ */ React.createElement("label", { className: "lbl", style: { margin: 0, flex: 1 } }, "\u0414\u043d\u0438"),
+                  /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, background: "#0a1020", borderRadius: 7, padding: 3 } },
+                    /* @__PURE__ */ React.createElement("button", { className: "btn btn-sm " + (!sl.specificDates ? "btn-primary" : "btn-ghost"),
                       style: { fontSize: 11 }, onClick: () => toggleSlotMode(idx) }, "\u0414\u043d\u0438 \u043d\u0435\u0434."),
-                    CE("button", { className: "btn btn-sm " + (sl.specificDates ? "btn-primary" : "btn-ghost"),
+                    /* @__PURE__ */ React.createElement("button", { className: "btn btn-sm " + (sl.specificDates ? "btn-primary" : "btn-ghost"),
                       style: { fontSize: 11 }, onClick: () => toggleSlotMode(idx) }, "\u041a\u043e\u043d\u043a\u0440\u0435\u0442\u043d\u044b\u0435"))),
 
                 !sl.specificDates
-                  ? CE("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10 } },
-                      [1,2,3,4,5,6,0].map(d => CE("button", { key: d,
+                  ? /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 } },
+                      [1,2,3,4,5,6,0].map((d) => /* @__PURE__ */ React.createElement("button", { key: d,
                         className: "btn btn-sm " + (sl.dow.includes(d) ? "btn-primary" : "btn-ghost"),
                         onClick: () => toggleSlotDow(idx, d) }, DLBLS[d])))
-                  : CE("div", { style: { marginBottom: 10 } },
-                      CE("div", { style: { display: "flex", gap: 6, marginBottom: 6 } },
-                        CE("input", { type: "date", className: "inp inp-sm", style: { flex: 1 },
-                          onChange: e => { addSpecificDate(idx, e.target.value); e.target.value = ""; } }),
-                        CE("span", { style: { fontSize: 11, color: "#3a5a70", alignSelf: "center" } }, "\u2190 \u0432\u044b\u0431\u0435\u0440\u0438 \u0434\u0430\u0442\u0443")),
-                      CE("div", { style: { display: "flex", flexWrap: "wrap", gap: 4 } },
-                        (sl.specificDates || []).map(sd => {
+                  : /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 12 } },
+                      /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, marginBottom: 8 } },
+                        /* @__PURE__ */ React.createElement("input", { type: "date", className: "inp inp-sm", style: { flex: 1 },
+                          onChange: (e) => { addSpecificDate(idx, e.target.value); e.target.value = ""; } }),
+                        /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: "#3a5a70", alignSelf: "center" } }, "\u2190 \u0432\u044b\u0431\u0435\u0440\u0438")),
+                      /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 4 } },
+                        (sl.specificDates || []).map((sd) => {
                           const dt = ld(sd);
-                          return CE("div", { key: sd, style: {
+                          const MNS = ["\u044f\u043d\u0432","\u0444\u0435\u0432","\u043c\u0430\u0440","\u0430\u043f\u0440","\u043c\u0430\u0439","\u0438\u044e\u043d","\u0438\u044e\u043b","\u0430\u0432\u0433","\u0441\u0435\u043d","\u043e\u043a\u0442","\u043d\u043e\u044f","\u0434\u0435\u043a"];
+                          return /* @__PURE__ */ React.createElement("div", { key: sd, style: {
                             display: "flex", alignItems: "center", gap: 4,
                             background: "#1a2a40", border: "1px solid #2a4a6a",
                             borderRadius: 6, padding: "3px 8px", fontSize: 12
                           } },
-                            CE("span", { style: { color: "#c0d8f0" } },
-                              ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"][dt.getMonth()] + " " + dt.getDate()),
-                            CE("button", { style: { background: "none", border: "none", color: "#ef4444",
-                              cursor: "pointer", fontSize: 12, padding: 0 },
+                            /* @__PURE__ */ React.createElement("span", { style: { color: "#c0d8f0" } }, MNS[dt.getMonth()] + " " + dt.getDate()),
+                            /* @__PURE__ */ React.createElement("button", { style: { background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: 12, padding: 0 },
                               onClick: () => removeSpecificDate(idx, sd) }, "\u00d7"));
                         }))),
 
-                // Date range (only in DOW mode)
-                !sl.specificDates && CE("div", { className: "form-grid", style: { marginBottom: 8 } },
-                  CE("div", null,
-                    CE("label", { className: "lbl" }, "\u0421 \u0434\u0430\u0442\u044b"),
-                    CE("input", { type: "date", className: "inp", value: sl.startDate,
-                      onChange: e => updSlot(idx, "startDate", e.target.value) })),
-                  CE("div", null,
-                    CE("label", { className: "lbl" }, "\u041f\u043e \u0434\u0430\u0442\u0443"),
-                    CE("input", { type: "date", className: "inp", value: sl.endDate,
-                      onChange: e => updSlot(idx, "endDate", e.target.value) }))),
+                !sl.specificDates && /* @__PURE__ */ React.createElement("div", { className: "form-grid", style: { marginBottom: 10 } },
+                  /* @__PURE__ */ React.createElement("div", null,
+                    /* @__PURE__ */ React.createElement("label", { className: "lbl" }, "\u0421 \u0434\u0430\u0442\u044b"),
+                    /* @__PURE__ */ React.createElement("input", { type: "date", className: "inp", value: sl.startDate,
+                      onChange: (e) => updSlot(idx, "startDate", e.target.value) })),
+                  /* @__PURE__ */ React.createElement("div", null,
+                    /* @__PURE__ */ React.createElement("label", { className: "lbl" }, "\u041f\u043e \u0434\u0430\u0442\u0443"),
+                    /* @__PURE__ */ React.createElement("input", { type: "date", className: "inp", value: sl.endDate,
+                      onChange: (e) => updSlot(idx, "endDate", e.target.value) }))),
 
-                // Time
-                CE("div", { className: "form-grid", style: { marginBottom: 8 } },
-                  CE("div", null,
-                    CE("label", { className: "lbl" }, "\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430"),
-                    CE("input", { type: "time", className: "inp", value: sl.timeStart, step: "1800",
-                      onChange: e => updSlot(idx, "timeStart", e.target.value) })),
-                  CE("div", null,
-                    CE("label", { className: "lbl" }, "\u0412\u0440\u0435\u043c\u044f \u043e\u043a\u043e\u043d\u0447\u0430\u043d\u0438\u044f"),
-                    CE("input", { type: "time", className: "inp", value: sl.timeEnd, step: "1800",
-                      onChange: e => updSlot(idx, "timeEnd", e.target.value) }))),
+                /* @__PURE__ */ React.createElement("div", { className: "form-grid", style: { marginBottom: 10 } },
+                  /* @__PURE__ */ React.createElement("div", null,
+                    /* @__PURE__ */ React.createElement("label", { className: "lbl" }, "\u0412\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430"),
+                    /* @__PURE__ */ React.createElement("input", { type: "time", className: "inp", value: sl.timeStart, step: "1800",
+                      onChange: (e) => updSlot(idx, "timeStart", e.target.value) })),
+                  /* @__PURE__ */ React.createElement("div", null,
+                    /* @__PURE__ */ React.createElement("label", { className: "lbl" }, "\u0412\u0440\u0435\u043c\u044f \u043e\u043a\u043e\u043d\u0447\u0430\u043d\u0438\u044f"),
+                    /* @__PURE__ */ React.createElement("input", { type: "time", className: "inp", value: sl.timeEnd, step: "1800",
+                      onChange: (e) => updSlot(idx, "timeEnd", e.target.value) }))),
 
-                // Slot summary
-                dates.length > 0 && CE("div", { style: {
-                  fontSize: 11, color: "#34d399", background: "rgba(52,211,153,.06)",
-                  border: "1px solid rgba(52,211,153,.15)", borderRadius: 6, padding: "6px 10px"
-                } }, dates.length + " \u0437\u0430\u043d\u044f\u0442\u0438\u0439 \u00b7 " + cost.toLocaleString() + " \u20bd")
-              );
+                dates.length > 0 && /* @__PURE__ */ React.createElement("div", { style: {
+                  fontSize: 12, color: "#34d399", background: "rgba(52,211,153,.06)",
+                  border: "1px solid rgba(52,211,153,.15)", borderRadius: 7, padding: "7px 12px", marginTop: 4
+                } }, dates.length + " \u0437\u0430\u043d\u044f\u0442\u0438\u0439 \u00b7 " + cost.toLocaleString() + " \u20bd"));
             }),
 
-            // Add slot button
-            CE("button", { className: "btn btn-ghost btn-sm", onClick: addSlot },
+            /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", style: { marginTop: 6 }, onClick: addSlot },
               "+ \u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0441\u043b\u043e\u0442")),
 
-          // Notes
-          CE("div", { style: { marginTop: 10 } },
-            CE("label", { className: "lbl" }, "\u041f\u0440\u0438\u043c\u0435\u0447\u0430\u043d\u0438\u044f"),
-            CE("textarea", { className: "inp", rows: 2, value: f.notes,
-              style: { resize: "vertical" },
-              onChange: e => upd("notes", e.target.value) })),
+          /* @__PURE__ */ React.createElement("div", { style: { marginTop: 12 } },
+            /* @__PURE__ */ React.createElement("label", { className: "lbl" }, "\u041f\u0440\u0438\u043c\u0435\u0447\u0430\u043d\u0438\u044f"),
+            /* @__PURE__ */ React.createElement("textarea", { className: "inp", rows: 2, value: f.notes,
+              style: { resize: "vertical" }, onChange: (e) => upd("notes", e.target.value) })),
 
-          // Total
-          total > 0 && CE("div", { style: {
+          total > 0 && /* @__PURE__ */ React.createElement("div", { style: {
             marginTop: 12, padding: "10px 14px",
             background: "rgba(96,165,250,.06)", border: "1px solid rgba(96,165,250,.15)",
             borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center"
           } },
-            CE("span", { style: { fontSize: 13, color: "#4a6a8a" } }, "\u0418\u0442\u043e\u0433\u043e:"),
-            CE("span", { style: { fontSize: 16, fontWeight: 800, color: "#60a5fa" } },
-              total.toLocaleString() + " \u20bd")),
+            /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, color: "#4a6a8a" } }, "\u0418\u0442\u043e\u0433\u043e:"),
+            /* @__PURE__ */ React.createElement("span", { style: { fontSize: 16, fontWeight: 800, color: "#60a5fa" } }, total.toLocaleString() + " \u20bd")),
 
-          // Footer buttons
-          CE("div", { style: { display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 14 } },
-            CE("button", { className: "btn btn-ghost", onClick: close }, "\u041e\u0442\u043c\u0435\u043d\u0430"),
-            CE("button", { className: "btn btn-primary", onClick: submit },
+          /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 14 } },
+            /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: close }, "\u041e\u0442\u043c\u0435\u043d\u0430"),
+            /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: submit },
               isEdit ? "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c" : "\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0431\u0440\u043e\u043d\u044c")))));
   }
-
   function OrgModal({ ctx, ob }) {
     const { data, save, toast, close } = ctx;
     const [f, setF] = useState({
