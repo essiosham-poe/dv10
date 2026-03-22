@@ -585,7 +585,7 @@ react-dom/cjs/react-dom-client.production.js:
                 /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("radialGradient", { id: "sg", cx: "35%", cy: "30%" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#3a6abb" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#0a1830" }))),
                 /* @__PURE__ */ React.createElement("path", { d: "M16 1 Q24 8 31 16 Q24 24 16 31 Q8 24 1 16 Q8 8 16 1Z", fill: "none", stroke: "#fbbf24", strokeWidth: "1.2", opacity: "0.8" })),
               /* @__PURE__ */ React.createElement("span", { className: "logo-title" }, "DYNAMO")),
-            /* @__PURE__ */ React.createElement("nav", { className: "nav" },
+            /* @__PURE__ */ React.createElement("nav", { className: "sidebar-nav" },
               TABS.map((t) => /* @__PURE__ */ React.createElement("button", { key: t.id, className: `ntab${tab === t.id ? " ntab-on" : ""}`, onClick: () => setTab(t.id) },
                 /* @__PURE__ */ React.createElement("span", null, t.icon),
                 /* @__PURE__ */ React.createElement("span", { className: "ntab-lbl" }, t.label),
@@ -2209,7 +2209,7 @@ body{background:#050a14;}
 .ntab-lbl{display:inline;}
 .nbadge{background:#ef4444;color:#fff;border-radius:10px;font-size:12px;padding:2px 7px;font-weight:700;}
 
-.main{padding:14px 14px 40px;}
+.main{padding:14px 14px 80px;}
 .wfull-main{padding:0;height:100vh;overflow:hidden;}
 
 .btn{cursor:pointer;border:none;border-radius:11px;font-family:inherit;font-size:15px;font-weight:700;padding:14px 22px;transition:all 0.15s;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;line-height:1;}
@@ -2309,26 +2309,32 @@ body{background:#050a14;}
   .modal{border-radius:16px;max-height:90vh;}
 }
 /* ── DESKTOP LAYOUT (sidebar) ── */
+.sidebar{display:none;}
+/* ── DESKTOP LAYOUT (sidebar) ── */
 @media(min-width:900px){
   /* App shell: sidebar + content */
-  body{overflow:hidden;}
-  .app-shell{display:flex;height:100vh;overflow:hidden;}
+  body{overflow-x:hidden;overflow-y:auto;}
+  .app-shell{display:flex;flex-direction:row;min-height:100vh;align-items:flex-start;}
   .sidebar{
+    display:flex;
     width:200px;flex-shrink:0;
     background:#06101e;
     border-right:1px solid #1a2d4a;
-    display:flex;flex-direction:column;
+    flex-direction:column;
     padding:0;overflow-y:auto;
-    position:fixed;left:0;top:0;bottom:0;z-index:50;
+    position:sticky;top:0;height:100vh;z-index:50;flex-shrink:0;
   }
+  .hdr{display:none!important;}
+  .nav{display:none!important;}
   .sidebar-logo{
     padding:18px 16px 14px;
     border-bottom:1px solid #1a2d4a;
     display:flex;align-items:center;gap:10px;
   }
   .sidebar-logo .logo-title{font-size:14px;font-weight:800;color:#ddeeff;letter-spacing:.05em;}
-  .nav{
+  .sidebar-nav{
     flex-direction:column;padding:8px 0;gap:2px;
+    display:flex;
     border-bottom:none;overflow:visible;
   }
   .ntab{
@@ -2344,9 +2350,9 @@ body{background:#050a14;}
     margin-top:auto;
   }
   /* Push content right */
-  .hdr{padding:12px 24px;margin-left:200px;}
-  .main{margin-left:200px;padding:20px 28px 40px;height:calc(100vh - 57px);overflow-y:auto;max-width:none;}
-  .wfull-main{margin-left:200px;}
+  .hdr{padding:12px 24px;}
+  .main{padding:24px 32px 60px;min-height:100vh;max-width:none;flex:1;overflow-x:hidden;}
+  .wfull-main{flex:1;}
   /* Hide mobile-only elements on desktop */
   .hdr-logo{display:none;}
   .hdr-bron{display:none;}
