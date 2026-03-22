@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="theme-color" content="#050a14"/>
-<title>DV Arenda🏐</title>
+<title>Dynamo Vodny 🏐</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:#050a14;min-height:100vh;font-family:sans-serif;}
@@ -23,7 +23,7 @@ html,body{background:#050a14;min-height:100vh;font-family:sans-serif;}
 <div id="lock">
   <div style="background:#0c1525;border:1px solid #1e3a5a;border-radius:20px;padding:36px 32px;width:90%;max-width:340px;text-align:center;">
     <div style="font-size:52px;margin-bottom:14px">🏐</div>
-    <div style="font-size:20px;font-weight:900;color:#e0eeff;letter-spacing:.05em;margin-bottom:3px">DV Arenda</div>
+    <div style="font-size:20px;font-weight:900;color:#e0eeff;letter-spacing:.05em;margin-bottom:3px">DYNAMO VODNY</div>
     <div style="font-size:11px;color:#2a5a8a;letter-spacing:.1em;margin-bottom:26px;text-transform:uppercase">Система управления</div>
     <div id="pw-err" style="display:none;background:#1a0808;border:1px solid #3a1010;color:#ef4444;border-radius:8px;padding:9px 14px;font-size:13px;margin-bottom:12px">⚠️ Неверный пароль</div>
     <input id="pw" type="password" placeholder="Пароль"
@@ -415,9 +415,11 @@ react-dom/cjs/react-dom-client.production.js:
       try {
         const isNew = !cfg.binId;
         const url = isNew ? "https://api.jsonbin.io/v3/b" : `https://api.jsonbin.io/v3/b/${cfg.binId}`;
+        const headers = { "Content-Type": "application/json", "X-Master-Key": cfg.apiKey };
+        if (isNew) headers["X-Bin-Private"] = "false";
         const r = await fetch(url, {
           method: isNew ? "POST" : "PUT",
-          headers: { "Content-Type": "application/json", "X-Master-Key": cfg.apiKey, "X-Bin-Private": "false" },
+          headers: headers,
           body: JSON.stringify(nd)
         });
         const j = await r.json();
@@ -431,6 +433,7 @@ react-dom/cjs/react-dom-client.production.js:
       } catch(e2) {
         setSyncSt("error"); setSyncMsg("\u041d\u0435\u0442 \u0441\u0432\u044f\u0437\u0438");
         setTimeout(() => setSyncSt("idle"), 4e3);
+        throw e2; // re-throw so callers can handle
       }
     }, []);
 
@@ -445,7 +448,11 @@ react-dom/cjs/react-dom-client.production.js:
         const j = await r.json();
         if (!r.ok) throw new Error(j.message || "Load failed");
         const rec = j.record;
-        if (!rec || Object.keys(rec).length === 0) { setSyncSt("idle"); return null; }
+        // Validate it's real app data (has bookings array or other known fields)
+        if (!rec || (!rec.bookings && !rec.prices && !rec.notes)) { 
+          setSyncSt("idle"); 
+          return null; 
+        }
         setSyncSt("idle");
         return rec;
       } catch(e2) {
@@ -524,7 +531,7 @@ react-dom/cjs/react-dom-client.production.js:
     } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 48 } }, "\u{1F3D6}\uFE0F"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14 } }, "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430\u2026"));
     const conflicts = getConflicts(data.bookings, data.orgBookings);
     const colorMap = mkColorMap(data.bookings);
-    const ctx = { data, save, toast: toast_, open, close, conflicts, colorMap, sel, setSel, weekFull, setWeekFull, monthFull, setMonthFull };
+    const ctx = { data, save, toast: toast_, open, close, conflicts, colorMap, sel, setSel, weekFull, setWeekFull, monthFull, setMonthFull, cloudSave, cloudLoad, syncSt, syncMsg };
     const TABS = [
       { id: "today", icon: "\u{1F4C5}", label: "\u0421\u0435\u0433\u043E\u0434\u043D\u044F" },
       { id: "week", icon: "\u{1F4CA}", label: "\u041D\u0435\u0434\u0435\u043B\u044F" },
@@ -1485,21 +1492,65 @@ react-dom/cjs/react-dom-client.production.js:
       const cfg = getBinCfgSt();
       if (!cfg.apiKey) { toast("\u274c \u0421\u043d\u0430\u0447\u0430\u043b\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0438 Master Key", "err"); return; }
       if (!cfg.binId) { toast("\u274c \u0412\u0432\u0435\u0434\u0438 Bin ID", "err"); return; }
-      const d = await cloudLoad();
-      if (d) {
-        // Обновляем данные, НЕ затирая bookings если пустые
-        const merged = Object.assign({}, data, d);
-        save(merged);
-        // Refresh binId state if changed
-        const newCfg = getBinCfgSt();
-        if (newCfg.binId !== binId) setBinId(newCfg.binId || "");
-        toast("\u2705 \u0414\u0430\u043d\u043d\u044b\u0435 \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d\u044b! \u0411\u0440\u043e\u043d\u0435\u0439: " + (d.bookings || []).length);
-      } else toast("\u274c \u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c");
+      setSyncSt("loading");
+      toast("\u2601\uFE0F \u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026");
+      try {
+        const r = await fetch("https://api.jsonbin.io/v3/b/" + cfg.binId + "/latest", {
+          headers: { "X-Master-Key": cfg.apiKey }
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.message || ("HTTP " + r.status));
+        const rec = j.record;
+        if (!rec || typeof rec !== "object" || Object.keys(rec).length === 0) {
+          setSyncSt("idle");
+          toast("\u26a0\ufe0f \u041e\u0431\u043b\u0430\u043a\u043e \u043f\u0443\u0441\u0442\u043e\u0435");
+          return;
+        }
+        save(Object.assign({}, data, rec));
+        setSyncSt("idle");
+        toast("\u2705 \u0417\u0430\u0433\u0440\u0443\u0436\u0435\u043d\u043e! \u0411\u0440\u043e\u043d\u0435\u0439: " + (rec.bookings || []).length);
+      } catch(e2) {
+        setSyncSt("error");
+        setSyncMsg(e2.message);
+        toast("\u274c " + e2.message, "err");
+        setTimeout(() => setSyncSt("idle"), 5000);
+      }
     };
     const pushToCloud = async () => {
       const cfg = getBinCfgSt();
       if (!cfg.apiKey) { toast("\u274c \u0421\u043d\u0430\u0447\u0430\u043b\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0438 Master Key", "err"); return; }
-      await cloudSave(data);
+      setSyncSt("saving");
+      toast("\u2601\uFE0F \u041e\u0442\u043f\u0440\u0430\u0432\u043a\u0430\u2026");
+      const url = cfg.binId
+        ? "https://api.jsonbin.io/v3/b/" + cfg.binId
+        : "https://api.jsonbin.io/v3/b";
+      try {
+        const r = await fetch(url, {
+          method: cfg.binId ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Master-Key": cfg.apiKey,
+            "X-Bin-Private": "false"
+          },
+          body: JSON.stringify(data)
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.message || ("HTTP " + r.status));
+        if (!cfg.binId && j.metadata && j.metadata.id) {
+          const newId = j.metadata.id;
+          localStorage.setItem("DV_JSONBIN", JSON.stringify({apiKey: cfg.apiKey, binId: newId}));
+          setBinId(newId);
+        }
+        setSyncSt("saved");
+        setSyncMsg(new Date().toLocaleTimeString("ru", {hour:"2-digit",minute:"2-digit"}));
+        toast("\u2705 \u041e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043e! \u0411\u0440\u043e\u043d\u0435\u0439: " + (data.bookings || []).length);
+        setTimeout(() => setSyncSt("idle"), 3000);
+      } catch(e2) {
+        setSyncSt("error");
+        setSyncMsg(e2.message);
+        toast("\u274c " + e2.message, "err");
+        setTimeout(() => setSyncSt("idle"), 5000);
+      }
     };
         return /* @__PURE__ */ React.createElement("div", { style: { maxWidth: 560 } }, /* @__PURE__ */ React.createElement("div", { className: "grid-card", style: { marginBottom: 12, border: "1px solid #1e4a2a" } },
         /* @__PURE__ */ React.createElement("div", { className: "sec-hdr", style: { color: "#34d399" } }, "\u2601\uFE0F \u0421\u0438\u043d\u0445\u0440\u043e\u043d\u0438\u0437\u0430\u0446\u0438\u044f JSONBin.io"),
