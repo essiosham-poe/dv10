@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="theme-color" content="#050a14"/>
-<title>DV Arenda</title>
+<title>DV Аренда🏐</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:#050a14;min-height:100vh;font-family:sans-serif;}
@@ -23,7 +23,7 @@ html,body{background:#050a14;min-height:100vh;font-family:sans-serif;}
 <div id="lock">
   <div style="background:#0c1525;border:1px solid #1e3a5a;border-radius:20px;padding:36px 32px;width:90%;max-width:340px;text-align:center;">
     <div style="font-size:52px;margin-bottom:14px">🏐</div>
-    <div style="font-size:20px;font-weight:900;color:#e0eeff;letter-spacing:.05em;margin-bottom:3px">DV Arenda</div>
+    <div style="font-size:20px;font-weight:900;color:#e0eeff;letter-spacing:.05em;margin-bottom:3px">DV Аренда</div>
     <div style="font-size:11px;color:#2a5a8a;letter-spacing:.1em;margin-bottom:26px;text-transform:uppercase">Система управления</div>
     <div id="pw-err" style="display:none;background:#1a0808;border:1px solid #3a1010;color:#ef4444;border-radius:8px;padding:9px 14px;font-size:13px;margin-bottom:12px">⚠️ Неверный пароль</div>
     <input id="pw" type="password" placeholder="Пароль"
@@ -273,13 +273,27 @@ react-dom/cjs/react-dom-client.production.js:
       timeEnd: bk.timeEnd || "12:00"
     }];
   }
-  function slotRate(sl, prices, specH, isOrgOverride) {
+  function slotRate(sl, prices, specH, isOrgOverride, dateStr) {
     var _a;
     const ct = ((_a = ALL_COURTS.find((c) => (sl.courts || []).includes(c.id))) == null ? void 0 : _a.t) || "vb";
     let sum = 0, cur = t2m(sl.timeStart);
     const end = norm(sl.timeEnd);
+    // Use provided date for weekday detection, or fall back to startDate
+    const refDate = dateStr || sl.startDate || "2000-01-01";
+    const slDow = (new Date(refDate + "T00:00:00")).getDay();
+    const isWe = slDow === 0 || slDow === 6;
     while (cur < end) {
-      const isOrg = (isOrgOverride !== undefined ? isOrgOverride : sl.isOrg) || false; let r; if(specH){r=specH;}else{ /* ── Баг #1 исправлен: определяем is_weekend по реальной дате, не по startDate ── */ const slDates=slotDates(sl); const isWe = slDates.length>0 ? (()=>{const d=ld(slDates[0]);return d.getDay()===0||d.getDay()===6;})() : ((new Date((sl.startDate||"2000-01-01")+"T00:00:00")).getDay()===0||(new Date((sl.startDate||"2000-01-01")+"T00:00:00")).getDay()===6); if(isWe){r=cur<t2m("09:00")?(isOrg?(prices.lgWe1||2700):(prices.phWe1||2200)):(isOrg?(prices.lgWe2||3000):(prices.phWe2||2500));}else{if(cur<t2m("10:00"))r=isOrg?(prices.lgWd1||2700):(prices.phWd1||2200);else if(cur<t2m("17:00"))r=isOrg?(prices.lgWd2||2500):(prices.phWd2||2000);else r=isOrg?(prices.lgWd3||3000):(prices.phWd3||2500);}}
+      const isOrg = (isOrgOverride !== undefined ? isOrgOverride : sl.isOrg) || false;
+      let r;
+      if (specH) { r = specH; }
+      else if (isWe) {
+        r = cur < t2m("09:00") ? (isOrg ? (prices.lgWe1||2700) : (prices.phWe1||2200))
+                                : (isOrg ? (prices.lgWe2||3000) : (prices.phWe2||2500));
+      } else {
+        if (cur < t2m("10:00")) r = isOrg ? (prices.lgWd1||2700) : (prices.phWd1||2200);
+        else if (cur < t2m("17:00")) r = isOrg ? (prices.lgWd2||2500) : (prices.phWd2||2000);
+        else r = isOrg ? (prices.lgWd3||3000) : (prices.phWd3||2500);
+      }
       sum += r;
       cur += STEP;
     }
@@ -289,14 +303,9 @@ react-dom/cjs/react-dom-client.production.js:
     if (bk.isFree) return 0;
     const specH = bk.customPricePerHour || (specPrices || {})[bk.clientName] || 0;
     const slots = bk.slots || legacySlots(bk);
-    // ── Баг #1 исправлен: считаем стоимость по каждой реальной дате отдельно ──
+    // Calculate per-date so weekday/weekend is correct for each session
     const sum = slots.reduce((s, sl) => {
-      const dates = slotDates(sl);
-      return s + dates.reduce((ds, dateStr) => {
-        // Создаём копию слота с конкретной датой для правильного определения weekend/weekday
-        const slForDate = Object.assign({}, sl, { startDate: dateStr, endDate: dateStr, dow: [ld(dateStr).getDay()] });
-        return ds + slotRate(slForDate, prices, specH, bk.isOrg);
-      }, 0);
+      return s + slotDates(sl).reduce((ss, dateStr) => ss + slotRate(sl, prices, specH, bk.isOrg, dateStr), 0);
     }, 0);
     const ballCost = (bk.ballCount || 0) * (prices.ball || 300) * allDates(bk).length;
     const storageCost = bk.ballStorage ? prices.ballStorage || 5e3 : 0;
@@ -613,7 +622,8 @@ react-dom/cjs/react-dom-client.production.js:
     } }, "\u{1F514} ", remAlert.text.slice(0, 18), "\u2026"), syncSt !== "idle" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 5, background: "#0a1525", border: "1px solid #1e4a2a", borderRadius: 20, padding: "5px 10px", fontSize: 11, color: syncSt === "saved" ? "#34d399" : syncSt === "error" ? "#ef4444" : "#fbbf24" } }, /* @__PURE__ */ React.createElement("div", { style: { width: 6, height: 6, borderRadius: "50%", background: "currentColor", flexShrink: 0 } }), syncSt === "saved" ? `\u2601\uFE0F ${syncMsg}` : syncSt === "saving" ? "\u2601\uFE0F \u0421\u043E\u0445\u0440\u2026" : syncSt === "loading" ? "\u2601\uFE0F \u0417\u0430\u0433\u0440\u2026" : "\u26A0\uFE0F"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("calc", null) }, "\u{1F9EE}"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ai", onClick: () => open("ai", null) }, "\u{1F916} \u0410\u0441\u0441\u0438\u0441\u0442\u0435\u043D\u0442"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => open("booking", null) }, "\uFF0B \u0411\u0440\u043E\u043D\u044C"))), /* @__PURE__ */ React.createElement("nav", { className: "nav" }, TABS.map((t) => /* @__PURE__ */ React.createElement("button", { key: t.id, className: `ntab${tab === t.id ? " ntab-on" : ""}`, onClick: () => setTab(t.id) }, /* @__PURE__ */ React.createElement("span", null, t.icon), /* @__PURE__ */ React.createElement("span", { className: "ntab-lbl" }, t.label), (t.badge || 0) > 0 && /* @__PURE__ */ React.createElement("span", { className: "nbadge" }, t.badge))))), /* @__PURE__ */ React.createElement("main", { className: weekFull ? "wfull-main" : "main" }, tab === "today" && /* @__PURE__ */ React.createElement(TodayTab, { ctx }), tab === "week" && /* @__PURE__ */ React.createElement(WeekTab, { ctx }), tab === "sched" && /* @__PURE__ */ React.createElement(DayTab, { ctx }), tab === "month" && /* @__PURE__ */ React.createElement(MonthTab, { ctx, onDay: (d) => {
       setSel(d);
       setTab("sched");
-    } }), tab === "bks" && /* @__PURE__ */ React.createElement(BookingsTab, { ctx }), tab === "orgs" && /* @__PURE__ */ React.createElement(OrgsTab, { ctx }), tab === "alerts" && /* @__PURE__ */ React.createElement(AlertsTab, { ctx }), tab === "fin" && /* @__PURE__ */ React.createElement(FinTab, { ctx }), tab === "avail" && /* @__PURE__ */ React.createElement(AvailTab, { ctx }), tab === "notes" && /* @__PURE__ */ React.createElement(NotesTab, { ctx }), tab === "set" && /* @__PURE__ */ React.createElement(SettingsTab, { ctx })), (modal == null ? void 0 : modal.type) === "booking" && /* @__PURE__ */ React.createElement(BookingModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "org" && /* @__PURE__ */ React.createElement(OrgModal, { ctx, ob: modal.payload }), (modal == null ? void 0 : modal.type) === "detail" && /* @__PURE__ */ React.createElement(DetailModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "pay" && /* @__PURE__ */ React.createElement(PayModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "sessions" && /* @__PURE__ */ React.createElement(SessionsModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "summary" && /* @__PURE__ */ React.createElement(SummaryModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "orgsumm" && /* @__PURE__ */ React.createElement(OrgSummaryModal, { ctx, ob: modal.payload }), (modal == null ? void 0 : modal.type) === "calc" && /* @__PURE__ */ React.createElement(CalcModal, { onClose: close }), (modal == null ? void 0 : modal.type) === "ai" && /* @__PURE__ */ React.createElement(AiModal, { ctx, onClose: close }), toast && /* @__PURE__ */ React.createElement("div", { className: `toast toast-${toast.type}` }, toast.msg));
+    } }), tab === "bks" && /* @__PURE__ */ React.createElement(BookingsTab, { ctx }), tab === "orgs" && /* @__PURE__ */ React.createElement(OrgsTab, { ctx }), tab === "alerts" && /* @__PURE__ */ React.createElement(AlertsTab, { ctx }), tab === "fin" && /* @__PURE__ */ React.createElement(FinTab, { ctx }), tab === "avail" && /* @__PURE__ */ React.createElement(AvailTab, { ctx }), tab === "notes" && /* @__PURE__ */ React.createElement(NotesTab, { ctx }), tab === "report" && /* @__PURE__ */ React.createElement(ReportTab, { ctx }),
+        tab === "set" && /* @__PURE__ */ React.createElement(SettingsTab, { ctx })), (modal == null ? void 0 : modal.type) === "booking" && /* @__PURE__ */ React.createElement(BookingModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "org" && /* @__PURE__ */ React.createElement(OrgModal, { ctx, ob: modal.payload }), (modal == null ? void 0 : modal.type) === "detail" && /* @__PURE__ */ React.createElement(DetailModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "pay" && /* @__PURE__ */ React.createElement(PayModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "sessions" && /* @__PURE__ */ React.createElement(SessionsModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "summary" && /* @__PURE__ */ React.createElement(SummaryModal, { ctx, bk: modal.payload }), (modal == null ? void 0 : modal.type) === "orgsumm" && /* @__PURE__ */ React.createElement(OrgSummaryModal, { ctx, ob: modal.payload }), (modal == null ? void 0 : modal.type) === "calc" && /* @__PURE__ */ React.createElement(CalcModal, { onClose: close }), (modal == null ? void 0 : modal.type) === "ai" && /* @__PURE__ */ React.createElement(AiModal, { ctx, onClose: close }), toast && /* @__PURE__ */ React.createElement("div", { className: `toast toast-${toast.type}` }, toast.msg));
   }
 
   function AvailTab({ ctx }) {
@@ -903,18 +913,10 @@ react-dom/cjs/react-dom-client.production.js:
                   }, ct?.t==="fb"?"\u26BD ":ct?.t==="tn"?"\u{1F3BE} ":"\u{1F3D0} ", "\u041a", id);
                 })
               ),
-              /* @__PURE__ */ React.createElement("div", { style: { marginTop:10, display:"flex", gap:6, alignItems:"center", justifyContent:"space-between" } },
-                /* @__PURE__ */ React.createElement("div", { style: { marginTop:0, fontSize:11, color:"#2a4a6a", fontStyle:"italic" } },
-                  "\u00AB" + DR7[dow] + " " + dayObj.getDate() + " " + MR2[dayObj.getMonth()] + ", " + hour + ":00 \u2014 " +
-                  (courts.length===1?"\u043a\u043e\u0440\u0442 "+courts[0]:courts.length+"\u00a0\u043a\u043e\u0440\u0442\u0430(\u043e\u0432)") +
-                  " \u2014 " + price.toLocaleString() + "\u20BD/30\u043c\u0438\u043d\u00BB"
-                ),
-                /* @__PURE__ */ React.createElement("button", {
-                  type: "button",
-                  className: "btn btn-sm btn-primary",
-                  style: { flexShrink: 0, fontSize: 11, padding: "5px 12px" },
-                  onClick: (e) => { e.stopPropagation(); open("booking", { _prefDate: dateStr, _prefCourt: courts[0], _prefTimeStart: hour+":00", _prefTimeEnd: (hour+1)+":00" }); }
-                }, "+ \u0417\u0430\u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u0442\u044c")
+              /* @__PURE__ */ React.createElement("div", { style: { marginTop:8, fontSize:11, color:"#2a4a6a", fontStyle:"italic" } },
+                "\u00AB" + DR7[dow] + " " + dayObj.getDate() + " " + MR2[dayObj.getMonth()] + ", " + hour + ":00 \u2014 " +
+                (courts.length===1?"\u043a\u043e\u0440\u0442 "+courts[0]:courts.length+"\u00a0\u043a\u043e\u0440\u0442\u0430(\u043e\u0432)") +
+                " \u2014 " + price.toLocaleString() + "\u20BD/30\u043c\u0438\u043d\u00BB"
               )
             );
           })
@@ -931,36 +933,137 @@ react-dom/cjs/react-dom-client.production.js:
       return am - bm;
     });
     const orgs = data.orgBookings.filter((ob) => (ob.dates || []).includes(today));
+
+    // Revenue TODAY
     const todayRev = bks.reduce((s, b) => {
-      const slots = slotsOnDate(b, today);
-      return s + slots.reduce((ss, sl) => ss + slotRate(sl, data.prices, (data.specialPrices || {})[b.clientName] || b.customPricePerHour || 0), 0);
+      return s + slotsOnDate(b, today).reduce((ss, sl) => ss + slotRate(sl, data.prices, (data.specialPrices || {})[b.clientName] || b.customPricePerHour || 0), 0);
     }, 0);
-    const busyCourts = new Set(bks.flatMap((b) => slotsOnDate(b, today).flatMap((sl) => sl.courts || [])));
-    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "today-hero" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "today-dow" }, DRF[now.getDay()]), /* @__PURE__ */ React.createElement("div", { className: "today-date" }, now.getDate(), " ", MF[now.getMonth()], " ", now.getFullYear())), /* @__PURE__ */ React.createElement("div", { className: "kpi-row" }, /* @__PURE__ */ React.createElement(KPICard, { l: "\u0411\u0440\u043E\u043D\u0435\u0439", v: bks.length, c: "#60a5fa" }), /* @__PURE__ */ React.createElement(KPICard, { l: "\u041A\u043E\u0440\u0442\u043E\u0432", v: busyCourts.size, c: "#a78bfa" }), /* @__PURE__ */ React.createElement(KPICard, { l: "\u0412\u044B\u0440\u0443\u0447\u043A\u0430", v: `${todayRev.toLocaleString()}\u20BD`, c: "#34d399" }), orgs.length > 0 && /* @__PURE__ */ React.createElement(KPICard, { l: "\u041C\u0435\u0440\u043E\u043F.", v: orgs.length, c: "#f97316" }))), orgs.map((ob) => /* @__PURE__ */ React.createElement("div", { key: ob.id, className: "org-banner" }, "\u{1F3E2} ", /* @__PURE__ */ React.createElement("b", null, ob.orgName), " \u2014 ", ob.blockAll ? "\u0432\u0435\u0441\u044C \u043E\u0431\u044A\u0435\u043A\u0442" : `${ob.timeStart}\u2013${ob.timeEnd}`)), /* @__PURE__ */ React.createElement("div", { className: "sec-hdr" }, "\u0420\u0430\u0441\u043F\u0438\u0441\u0430\u043D\u0438\u0435 \u0434\u043D\u044F"), bks.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "empty" }, "\u041D\u0430 \u0441\u0435\u0433\u043E\u0434\u043D\u044F \u0431\u0440\u043E\u043D\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0439 \u043D\u0435\u0442 \u{1F3D6}\uFE0F") : /* @__PURE__ */ React.createElement("div", { className: "evt-list" }, bks.map((b) => {
-      const slots = slotsOnDate(b, today);
-      const col = colorMap[b.clientName] || "#60a5fa";
-      const firstM = Math.min(...slots.map((sl) => t2m(sl.timeStart)));
-      const lastM = Math.max(...slots.map((sl) => norm(sl.timeEnd)));
-      const isNow = nowM >= firstM && nowM < lastM, isPast = nowM >= lastM;
-      return /* @__PURE__ */ React.createElement(
-        "div",
-        {
-          key: b.id,
-          className: "evt-card",
-          style: { borderLeftColor: isPast ? "#1a2a40" : col, opacity: isPast ? 0.65 : 1 },
-          onClick: () => ctx.open("detail", b)
-        },
-        /* @__PURE__ */ React.createElement("div", { className: "evt-main" }, /* @__PURE__ */ React.createElement("div", { className: "evt-info" }, isNow && /* @__PURE__ */ React.createElement("span", { className: "dot-now", style: { background: col } }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "evt-name" }, b.clientName, b.isFree && /* @__PURE__ */ React.createElement("span", { className: "tag tag-free" }, "\u0431\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E"), (data.specialPrices || {})[b.clientName] && /* @__PURE__ */ React.createElement("span", { className: "tag tag-spec" }, "\u0441\u043F\u0435\u0446\u0446\u0435\u043D\u0430")), /* @__PURE__ */ React.createElement("div", { className: "evt-sub" }, slots.map((sl, i) => `${(sl.courts || []).map((id) => {
-          var _a;
-          return ((_a = ALL_COURTS.find((c) => c.id === id)) == null ? void 0 : _a.name) || id;
-        }).join("+")} ${sl.timeStart}\u2013${sl.timeEnd}`).join(" \xB7 ")))), /* @__PURE__ */ React.createElement("div", { className: "evt-right" }, isNow && /* @__PURE__ */ React.createElement("span", { className: "now-chip" }, "\u0421\u0415\u0419\u0427\u0410\u0421"), /* @__PURE__ */ React.createElement("span", { className: "evt-time", style: { color: col } }, m2t(firstM))))
-      );
-    })), /* @__PURE__ */ React.createElement("div", { className: "sec-hdr", style: { marginTop: 20 } }, "\u041A\u043E\u0440\u0442\u044B \u0441\u0435\u0433\u043E\u0434\u043D\u044F"), /* @__PURE__ */ React.createElement("div", { className: "courts-grid" }, ALL_COURTS.map((ct) => {
-      const busy = busyCourts.has(ct.id);
-      const acc = ct.t === "fb" ? "#f97316" : ct.t === "tn" ? "#fbbf24" : "#3b82f6";
-      return /* @__PURE__ */ React.createElement("div", { key: ct.id, className: "court-chip", style: { borderColor: busy ? acc : "#1a2a40", background: busy ? `${acc}15` : "#0e1525" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: busy ? acc : "#2a4060" } }, ct.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: busy ? "#ef4444" : "#22c55e", marginTop: 1 } }, busy ? "\u0437\u0430\u043D\u044F\u0442\u043E" : "\u0441\u0432\u043E\u0431\u043E\u0434\u043D\u043E"));
-    })));
+
+    // Per-court status RIGHT NOW and upcoming
+    function courtNow(courtId) {
+      for (const b of bks) {
+        for (const sl of slotsOnDate(b, today)) {
+          if (!(sl.courts || []).includes(courtId)) continue;
+          const ts = t2m(sl.timeStart), te = norm(sl.timeEnd);
+          if (nowM >= ts && nowM < te) return { type: 'now', b, sl, ts, te };
+        }
+      }
+      return null;
+    }
+    function courtNext(courtId) {
+      let best = null;
+      for (const b of bks) {
+        for (const sl of slotsOnDate(b, today)) {
+          if (!(sl.courts || []).includes(courtId)) continue;
+          const ts = t2m(sl.timeStart);
+          if (ts > nowM && (!best || ts < best.ts)) best = { b, sl, ts, te: norm(sl.timeEnd) };
+        }
+      }
+      return best;
+    }
+    function courtPrev(courtId) {
+      let best = null;
+      for (const b of bks) {
+        for (const sl of slotsOnDate(b, today)) {
+          if (!(sl.courts || []).includes(courtId)) continue;
+          const te = norm(sl.timeEnd);
+          if (te <= nowM && (!best || te > best.te)) best = { b, sl, ts: t2m(sl.timeStart), te };
+        }
+      }
+      return best;
+    }
+
+    // Busy NOW (for KPI)
+    const busyNow = new Set(ALL_COURTS.filter(ct => courtNow(ct.id)).map(ct => ct.id));
+
+    return /* @__PURE__ */ React.createElement("div", null,
+      /* hero */
+      /* @__PURE__ */ React.createElement("div", { className: "today-hero" },
+        /* @__PURE__ */ React.createElement("div", null,
+          /* @__PURE__ */ React.createElement("div", { className: "today-dow" }, DRF[now.getDay()]),
+          /* @__PURE__ */ React.createElement("div", { className: "today-date" }, now.getDate(), " ", MF[now.getMonth()], " ", now.getFullYear())),
+        /* @__PURE__ */ React.createElement("div", { className: "kpi-row" },
+          /* @__PURE__ */ React.createElement(KPICard, { l: "\u0411\u0440\u043e\u043d\u0435\u0439", v: bks.length, c: "#60a5fa" }),
+          /* @__PURE__ */ React.createElement(KPICard, { l: "\u0421\u0435\u0439\u0447\u0430\u0441", v: busyNow.size, c: "#34d399" }),
+          /* @__PURE__ */ React.createElement(KPICard, { l: "\u0412\u044b\u0440\u0443\u0447\u043a\u0430", v: todayRev.toLocaleString() + "\u20bd", c: "#fbbf24" }),
+          orgs.length > 0 && /* @__PURE__ */ React.createElement(KPICard, { l: "\u041c\u0435\u0440\u043e\u043f.", v: orgs.length, c: "#f97316" }))),
+
+      /* org banners */
+      orgs.map((ob) => /* @__PURE__ */ React.createElement("div", { key: ob.id, className: "org-banner" },
+        "\u{1F3E2} ", /* @__PURE__ */ React.createElement("b", null, ob.orgName), " \u2014 ",
+        ob.blockAll ? "\u0432\u0435\u0441\u044c \u043e\u0431\u044a\u0435\u043a\u0442" : ob.timeStart + "\u2013" + ob.timeEnd)),
+
+      /* ── COURTS MONITOR ── */
+      /* @__PURE__ */ React.createElement("div", { className: "sec-hdr", style: { marginBottom: 10 } }, "\u{1F3D0} \u041c\u043e\u043d\u0438\u0442\u043e\u0440 \u043a\u043e\u0440\u0442\u043e\u0432"),
+      /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8, marginBottom: 20 } },
+        ALL_COURTS.filter(ct => ct.t !== "fb").concat(ALL_COURTS.filter(ct => ct.t === "fb")).map((ct) => {
+          const active = courtNow(ct.id);
+          const next = courtNext(ct.id);
+          const prev = courtPrev(ct.id);
+          const col = ct.t === "fb" ? "#f97316" : ct.t === "tn" ? "#fbbf24" : "#3b82f6";
+          const bg = active ? col + "18" : "#0a1018";
+          const border = active ? col : "#1a2a40";
+          return /* @__PURE__ */ React.createElement("div", { key: ct.id,
+            style: { background: bg, border: "1.5px solid " + border, borderRadius: 10, padding: "10px 12px", cursor: "pointer" },
+            onClick: () => active && open("detail", active.b) },
+            /* court name + status dot */
+            /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 6, marginBottom: 6 } },
+              /* @__PURE__ */ React.createElement("span", { style: { width: 8, height: 8, borderRadius: "50%", background: active ? "#34d399" : "#1a3a1a", flexShrink: 0,
+                boxShadow: active ? "0 0 6px #34d39980" : "none",
+                animation: active ? "pulse 1.4s infinite" : "none" } }),
+              /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: active ? "#fff" : "#3a5a70" } },
+                ct.t === "fb" ? "\u26bd " : "", ct.name)),
+
+            active
+              ? /* @__PURE__ */ React.createElement("div", null,
+                  /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: colorMap[active.b.clientName] || "#60a5fa", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" } },
+                    active.b.clientName),
+                  /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#3a6a8a" } },
+                    m2t(active.ts) + "\u2013" + m2t(active.te)),
+                  /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#34d399", marginTop: 2 } }, "\u25cf \u0418\u0413\u0420\u0410\u0415\u0422"))
+              : next
+              ? /* @__PURE__ */ React.createElement("div", null,
+                  /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#2a4a6a" } }, "\u0421\u0432\u043e\u0431\u043e\u0434\u043d\u043e"),
+                  /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#3a6a9a", marginTop: 2 } },
+                    "\u0421\u043b\u0435\u0434.: " + m2t(next.ts) + " " + (next.b.clientName.split(" ")[0])))
+              : prev
+              ? /* @__PURE__ */ React.createElement("div", null,
+                  /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#2a3a50" } }, "\u0421\u0432\u043e\u0431\u043e\u0434\u043d\u043e"),
+                  /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#1a3a50", marginTop: 2 } },
+                    "\u0411\u044b\u043b\u043e: " + m2t(prev.ts) + "\u2013" + m2t(prev.te)))
+              : /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#1a3a50" } }, "\u0421\u0435\u0433\u043e\u0434\u043d\u044f \u043d\u0435\u0442"));
+        })),
+
+      /* ── SCHEDULE ── */
+      /* @__PURE__ */ React.createElement("div", { className: "sec-hdr" }, "\u0420\u0430\u0441\u043f\u0438\u0441\u0430\u043d\u0438\u0435 \u0434\u043d\u044f"),
+      bks.length === 0
+        ? /* @__PURE__ */ React.createElement("div", { className: "empty" }, "\u041d\u0430 \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0439 \u043d\u0435\u0442 \u{1F3D6}\uFE0F")
+        : /* @__PURE__ */ React.createElement("div", { className: "evt-list" },
+            bks.map((b) => {
+              const slots = slotsOnDate(b, today);
+              const col = colorMap[b.clientName] || "#60a5fa";
+              const firstM = Math.min(...slots.map((sl) => t2m(sl.timeStart)));
+              const lastM = Math.max(...slots.map((sl) => norm(sl.timeEnd)));
+              const isNow = nowM >= firstM && nowM < lastM, isPast = nowM >= lastM;
+              return /* @__PURE__ */ React.createElement("div", { key: b.id, className: "evt-card",
+                style: { borderLeftColor: isPast ? "#1a2a40" : col, opacity: isPast ? 0.6 : 1 },
+                onClick: () => ctx.open("detail", b) },
+                /* @__PURE__ */ React.createElement("div", { className: "evt-main" },
+                  /* @__PURE__ */ React.createElement("div", { className: "evt-info" },
+                    isNow && /* @__PURE__ */ React.createElement("span", { className: "dot-now", style: { background: col } }),
+                    /* @__PURE__ */ React.createElement("div", null,
+                      /* @__PURE__ */ React.createElement("div", { className: "evt-name" }, b.clientName,
+                        b.isFree && /* @__PURE__ */ React.createElement("span", { className: "tag tag-free" }, "\u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e"),
+                        (data.specialPrices || {})[b.clientName] && /* @__PURE__ */ React.createElement("span", { className: "tag tag-spec" }, "\u0441\u043f\u0435\u0446")),
+                      /* @__PURE__ */ React.createElement("div", { className: "evt-sub" },
+                        slots.map((sl, i) => `${(sl.courts||[]).map(id=>{const c=ALL_COURTS.find(c=>c.id===id);return c?c.name:id;}).join("+")} ${sl.timeStart}\u2013${sl.timeEnd}`).join(" \xb7 ")))),
+                  /* @__PURE__ */ React.createElement("div", { className: "evt-right" },
+                    isNow && /* @__PURE__ */ React.createElement("span", { className: "now-chip" }, "\u0421\u0415\u0419\u0427\u0410\u0421"),
+                    isPast && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: "#2a4060" } }, "\u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u043e"),
+                    /* @__PURE__ */ React.createElement("span", { className: "evt-time", style: { color: isPast ? "#2a4060" : col } }, m2t(firstM)))));
+            })));
   }
+
   function KPICard({ l, v, c }) {
     return /* @__PURE__ */ React.createElement("div", { className: "kpi" }, /* @__PURE__ */ React.createElement("div", { className: "kpi-l" }, l), /* @__PURE__ */ React.createElement("div", { className: "kpi-v", style: { color: c } }, v));
   }
@@ -1434,7 +1537,7 @@ react-dom/cjs/react-dom-client.production.js:
       return /* @__PURE__ */ React.createElement("div", { key: b.id, className: "bk-card", style: { borderLeft: `3px solid ${col}` } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700, fontSize: 16, color: "#fff" } }, b.clientName), b.isFree && /* @__PURE__ */ React.createElement("span", { className: "tag tag-free" }, "\u0431\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E"), b.isOrg && /* @__PURE__ */ React.createElement("span", { className: "tag", style: { background: "rgba(249,115,22,.15)", color: "#f97316", border: "1px solid rgba(249,115,22,.3)" } }, "\u042E\u041B"), (data.specialPrices || {})[b.clientName] && /* @__PURE__ */ React.createElement("span", { className: "tag tag-spec" }, "\u0441\u043F\u0435\u0446\u0446\u0435\u043D\u0430"), (data.specialPrices || {})[b.clientName] === void 0 && b.customPricePerHour && /* @__PURE__ */ React.createElement("span", { className: "tag tag-spec" }, "\u0441\u0432\u043E\u044F \u0446\u0435\u043D\u0430")), b.phone && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: "#4a6a8a", marginBottom: 2 } }, b.phone), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#3a5570", marginBottom: 4 } }, (b.slots || legacySlots(b)).map((sl, i) => /* @__PURE__ */ React.createElement("div", { key: i }, (sl.courts || []).map((id) => {
         var _a;
         return ((_a = ALL_COURTS.find((c) => c.id === id)) == null ? void 0 : _a.name) || id;
-      }).join("+"), " \xB7 ", ["\u0412\u0441", "\u041F\u043D", "\u0412\u0442", "\u0421\u0440", "\u0427\u0442", "\u041F\u0442", "\u0421\u0431"].filter((_, j) => (sl.dow || []).includes(j)).join(","), " \xB7 ", sl.timeStart, "\u2013", sl.timeEnd, " \xB7 ", ld(sl.startDate).getDate(), " ", MR[ld(sl.startDate).getMonth()], "\u2013", ld(sl.endDate).getDate(), " ", MR[ld(sl.endDate).getMonth()]))), (b.ballCount || 0) > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#34d399" } }, "\u{1F3D0} \u043C\u044F\u0447 \xD7", b.ballCount), b.ballStorage && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#a78bfa" } }, "\u{1F9FA} \u0445\u0440\u0430\u043D\u0435\u043D\u0438\u0435 \u043C\u044F\u0447\u0435\u0439"), (cs.cancels || 0) + (cs.postpones || 0) > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#f97316" } }, "\u{1F504} \u043E\u0442\u043C\u0435\u043D:", cs.cancels || 0, " \u043F\u0435\u0440\u0435\u043D.:", cs.postpones || 0), b.hasContract && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: b.contractSigned ? "#34d399" : "#f59e0b" } }, "\u{1F4C4} ", b.contractSigned ? "\u0414\u043E\u0433\u043E\u0432\u043E\u0440 \u043F\u043E\u0434\u043F\u0438\u0441\u0430\u043D" : "\u0414\u043E\u0433\u043E\u0432\u043E\u0440: \u043D\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0430\u043D")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "right", flexShrink: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#4a6a8a" } }, paid.toLocaleString(), "\u20BD / ", total.toLocaleString(), "\u20BD"), debt > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: "#ef4444" } }, "\u2212", debt.toLocaleString(), "\u20BD"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#2a4060", marginTop: 2 } }, dates.length, " \u0437\u0430\u043D\u044F\u0442\u0438\u0439"))), conf === b.id ? /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10, padding: "8px 12px", background: "#1a0808", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "#ef4444" } }, "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0431\u0440\u043E\u043D\u044C \xAB", b.clientName, "\xBB?"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6 } }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => setConf(null) }, "\u041E\u0442\u043C\u0435\u043D\u0430"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-danger btn-sm", onClick: () => del(b.id) }, "\u0423\u0434\u0430\u043B\u0438\u0442\u044C"))) : /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("detail", b) }, "\u{1F441} \u0414\u0435\u0442\u0430\u043B\u0438"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("booking", b) }, "\u270F\uFE0F \u0418\u0437\u043C\u0435\u043D\u0438\u0442\u044C"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("summary", b) }, "\u{1F4CB} \u0421\u043D\u043E\u0441\u043A\u0430"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("pay", b) }, "\u{1F4B3} \u041E\u043F\u043B\u0430\u0442\u0430"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("sessions", b) }, "\u2705 \u0417\u0430\u043D\u044F\u0442\u0438\u044F"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-danger btn-sm", onClick: () => setConf(b.id) }, "\u{1F5D1}")));
+      }).join("+"), " \xB7 ", ["\u0412\u0441", "\u041F\u043D", "\u0412\u0442", "\u0421\u0440", "\u0427\u0442", "\u041F\u0442", "\u0421\u0431"].filter((_, j) => (sl.dow || []).includes(j)).join(","), " \xB7 ", sl.timeStart, "\u2013", sl.timeEnd, " \xB7 ", ld(sl.startDate).getDate(), " ", MR[ld(sl.startDate).getMonth()], "\u2013", ld(sl.endDate).getDate(), " ", MR[ld(sl.endDate).getMonth()]))), (b.ballCount || 0) > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#34d399" } }, "\u{1F3D0} \u043C\u044F\u0447 \xD7", b.ballCount), b.ballStorage && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#a78bfa" } }, "\u{1F9FA} \u0445\u0440\u0430\u043D\u0435\u043D\u0438\u0435 \u043C\u044F\u0447\u0435\u0439"), (cs.cancels || 0) + (cs.postpones || 0) > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#f97316" } }, "\u{1F504} \u043F\u0435\u0440\u0435\u043D\u043E\u0441:", cs.cancels || 0, "  \u274C \u043F\u0440\u043E\u043F:", cs.postpones || 0), b.hasContract && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: b.contractSigned ? "#34d399" : "#f59e0b" } }, "\u{1F4C4} ", b.contractSigned ? "\u0414\u043E\u0433\u043E\u0432\u043E\u0440 \u043F\u043E\u0434\u043F\u0438\u0441\u0430\u043D" : "\u0414\u043E\u0433\u043E\u0432\u043E\u0440: \u043D\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0430\u043D")), /* @__PURE__ */ React.createElement("div", { style: { textAlign: "right", flexShrink: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 14, color: "#4a6a8a" } }, paid.toLocaleString(), "\u20BD / ", total.toLocaleString(), "\u20BD"), debt > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 14, color: "#ef4444" } }, "\u2212", debt.toLocaleString(), "\u20BD"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: "#2a4060", marginTop: 2 } }, dates.length, " \u0437\u0430\u043D\u044F\u0442\u0438\u0439"))), conf === b.id ? /* @__PURE__ */ React.createElement("div", { style: { marginTop: 10, padding: "8px 12px", background: "#1a0808", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "#ef4444" } }, "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0431\u0440\u043E\u043D\u044C \xAB", b.clientName, "\xBB?"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6 } }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => setConf(null) }, "\u041E\u0442\u043C\u0435\u043D\u0430"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-danger btn-sm", onClick: () => del(b.id) }, "\u0423\u0434\u0430\u043B\u0438\u0442\u044C"))) : /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("detail", b) }, "\u{1F441} \u0414\u0435\u0442\u0430\u043B\u0438"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("booking", b) }, "\u270F\uFE0F \u0418\u0437\u043C\u0435\u043D\u0438\u0442\u044C"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("summary", b) }, "\u{1F4CB} \u0421\u043D\u043E\u0441\u043A\u0430"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("pay", b) }, "\u{1F4B3} \u041E\u043F\u043B\u0430\u0442\u0430"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("sessions", b) }, "\u2705 \u0417\u0430\u043D\u044F\u0442\u0438\u044F"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-danger btn-sm", onClick: () => setConf(b.id) }, "\u{1F5D1}")));
     })));
   }
   function OrgsTab({ ctx }) {
@@ -1454,12 +1557,9 @@ react-dom/cjs/react-dom-client.production.js:
     const [sel, setSel] = useState(null); // selected conflict index
 
     const resolveClash = (conflict, keepBkId) => {
-      // Remove the date from the booking we DON'T keep
       const loserBk = keepBkId === conflict.a.id ? conflict.b : conflict.a;
       const date = conflict.date;
       const cid = conflict.cid;
-
-      // Exclude the date+court from loser's matching slot
       const newSlots = (loserBk.slots || legacySlots(loserBk)).map(function(sl) {
         if (!(sl.courts || []).includes(cid)) return sl;
         if (!slotDates(sl).includes(date)) return sl;
@@ -1467,10 +1567,19 @@ react-dom/cjs/react-dom-client.production.js:
         return Object.assign({}, sl, { excludeDates: [...excl, date].sort() });
       });
       const newLoser = Object.assign({}, loserBk, { slots: newSlots });
-      save(
-        Object.assign({}, data, { bookings: data.bookings.map(b => b.id === loserBk.id ? newLoser : b) }),
-        "\u26a1 \u0420\u0430\u0437\u0440\u0435\u0448\u0435\u043d \u043a\u043e\u043d\u0444\u043b\u0438\u043a\u0442: \u043e\u0441\u0442\u0430\u0432\u043b\u0435\u043d " + (keepBkId === conflict.a.id ? conflict.a.clientName : conflict.b.clientName)
-      );
+      save(Object.assign({}, data, { bookings: data.bookings.map(b => b.id === loserBk.id ? newLoser : b) }),
+        "\u26a1 \u041e\u0441\u0442\u0430\u0432\u043b\u0435\u043d " + (keepBkId === conflict.a.id ? conflict.a.clientName : conflict.b.clientName));
+      setSel(null);
+    };
+
+    // Swap court for a booking on a specific date
+    const swapCourt = (bk, date, oldCid, newCid) => {
+      // Add courtSwaps note to the booking so we can show it in TodayTab
+      const newSwaps = [...(bk.courtSwaps || []).filter(s => !(s.date===date && s.oldCid===oldCid)),
+        { date, oldCid, newCid }];
+      const newBk = Object.assign({}, bk, { courtSwaps: newSwaps });
+      save(Object.assign({}, data, { bookings: data.bookings.map(b => b.id === bk.id ? newBk : b) }),
+        "\u{1F504} \u041f\u0435\u0440\u0435\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 " + bk.clientName + " " + date + ": \u041a" + oldCid + "\u2192\u041a" + newCid);
       setSel(null);
     };
 
@@ -1558,7 +1667,77 @@ react-dom/cjs/react-dom-client.production.js:
               background: "#060c18", borderRadius: 8, padding: "12px",
               border: "1px solid rgba(249,115,22,.2)", fontSize: 12, color: "#7a9ab8"
             } },
-              "\u041e\u0440\u0433. \u043c\u0435\u0440\u043e\u043f\u0440\u0438\u044f\u0442\u0438\u0435 \u2014 \u043e\u0442\u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u0443\u0439 \u0431\u0440\u043e\u043d\u044c \u0432\u0440\u0443\u0447\u043d\u0443\u044e \u0438\u0437 \u0441\u043f\u0438\u0441\u043a\u0430 \u0411\u0440\u043e\u043d\u0435\u0439"));
+              "\u041e\u0440\u0433. \u043c\u0435\u0440\u043e\u043f\u0440\u0438\u044f\u0442\u0438\u0435 \u2014 \u043e\u0442\u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u0443\u0439 \u0431\u0440\u043e\u043d\u044c \u0432\u0440\u0443\u0447\u043d\u0443\u044e \u0438\u0437 \u0441\u043f\u0438\u0441\u043a\u0430 \u0411\u0440\u043e\u043d\u0435\u0439"),
+
+            /* Court swap suggestions for both clash and org conflicts */
+            isSelected && /* @__PURE__ */ React.createElement("div", { style: {
+              marginTop: 10, background: "#060c18", borderRadius: 8, padding: "12px",
+              border: "1px solid rgba(96,165,250,.15)"
+            } },
+              /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: "#3a5a80", fontWeight: 700, marginBottom: 8 } },
+                "\u{1F3D0} \u0414\u043e\u0441\u0442\u0443\u043f\u043d\u044b\u0435 \u0432\u043e\u043b\u0435\u0439\u0431\u043e\u043b\u044c\u043d\u044b\u0435 \u043a\u043e\u0440\u0442\u044b \u0434\u043b\u044f \u043f\u0435\u0440\u0435\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0438:"),
+              (function() {
+                var conflictDates = g.dates;
+                var sl = c.type === "clash" ? (c.a.slots||[])[0] : (c.bk.slots||[])[0];
+                if (!sl) return null;
+                var ts = sl.timeStart, te = sl.timeEnd;
+                var usedCourts = new Set(conflictDates.flatMap(function(d) {
+                  return data.bookings.flatMap(function(bk2) {
+                    if (!allDates(bk2).includes(d)) return [];
+                    return slotsOnDate(bk2, d).filter(function(s2) {
+                      return ovlp(s2.timeStart, s2.timeEnd, ts, te);
+                    }).flatMap(function(s2) { return s2.courts || []; });
+                  });
+                }));
+                var freeCourts = ALL_COURTS.filter(function(ct) {
+                  return ct.t !== "fb" && !usedCourts.has(ct.id);
+                });
+                if (!freeCourts.length) {
+                  // Find nearest time with free VB courts
+                  var nearTimes = [];
+                  [0,30,60,-30,-60].forEach(function(offset) {
+                    var adjTs = t2m(ts) + offset;
+                    if (adjTs < 7*60 || adjTs >= 23*60) return;
+                    var adjTe = t2m(te) + offset;
+                    var freeCts = ALL_COURTS.filter(function(ct) {
+                      if (ct.t === "fb") return false;
+                      return !data.bookings.some(function(bk2) {
+                        return conflictDates.some(function(d) {
+                          return allDates(bk2).includes(d) && slotsOnDate(bk2, d).some(function(s2) {
+                            return (s2.courts||[]).includes(ct.id) && ovlp(s2.timeStart, s2.timeEnd, m2t(adjTs), adjTe);
+                          });
+                        });
+                      });
+                    });
+                    if (freeCts.length) nearTimes.push({ offset, adjTs, freeCts });
+                  });
+                  if (!nearTimes.length) return React.createElement("div", { style: { fontSize: 11, color: "#ef4444" } }, "\u0412\u0441\u0435 \u0432\u043e\u043b\u0435\u0439\u0431\u043e\u043b\u044c\u043d\u044b\u0435 \u043a\u043e\u0440\u0442\u044b \u0437\u0430\u043d\u044f\u0442\u044b \u0432 \u044d\u0442\u043e \u0432\u0440\u0435\u043c\u044f");
+                  return React.createElement("div", null,
+                    React.createElement("div", { style: { fontSize: 11, color: "#f97316", marginBottom: 6 } },
+                      "\u0411\u043b\u0438\u0436\u0430\u0439\u0448\u0435\u0435 \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f:"),
+                    nearTimes.slice(0,3).map(function(nt) {
+                      var sign = nt.offset > 0 ? "+" : "";
+                      return React.createElement("div", { key: nt.offset, style: {
+                        fontSize: 11, color: "#60a5fa", padding: "3px 8px", marginBottom: 4,
+                        background: "rgba(96,165,250,.08)", borderRadius: 6
+                      } },
+                        m2t(nt.adjTs) + " \u2013 " + m2t(t2m(te)+nt.offset) + " (" + sign + nt.offset + "\u043c\u0438\u043d): \u041a" +
+                        nt.freeCts.slice(0,4).map(function(ct){return ct.id;}).join(", \u041a"));
+                    }));
+                }
+                return React.createElement("div", null,
+                  React.createElement("div", { style: { fontSize: 11, color: "#34d399", marginBottom: 6 } },
+                    "\u{1F3D0} \u041d\u0430\u0436\u043c\u0438 \u2014 \u043f\u0435\u0440\u0435\u0441\u0442\u0430\u0432\u0438\u043c \u043a\u043b\u0438\u0435\u043d\u0442\u0430:"),
+                  React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 5 } },
+                  freeCourts.slice(0, 6).map(function(ct) {
+                    var loserBk = c.type === "clash" ? c.b : c.bk;
+                    return React.createElement("button", { key: ct.id,
+                      className: "btn btn-ghost btn-sm",
+                      style: { fontSize: 12, border: "1.5px solid rgba(52,211,153,.3)", color: "#34d399" },
+                      onClick: function() { swapCourt(loserBk, c.date, c.cid || (loserBk.slots&&loserBk.slots[0]&&loserBk.slots[0].courts&&loserBk.slots[0].courts[0]), ct.id); }
+                    }, "\u{1F3D0} \u041a" + ct.id + " \u2192");
+                  })));
+              })()));
         })));
   }
 
@@ -1615,6 +1794,109 @@ react-dom/cjs/react-dom-client.production.js:
       return /* @__PURE__ */ React.createElement("div", { key: n.id, className: "note-card", style: { borderColor: n.pinned ? "#fbbf24" : past ? "#ef4444" : "#1e2d4a", background: n.pinned ? "#0e1a08" : past ? "#1a0808" : "#0e1525" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: 8 } }, /* @__PURE__ */ React.createElement("div", null, n.pinned && "\u{1F4CC}", " ", n.reminder && /* @__PURE__ */ React.createElement("span", { style: { opacity: past ? 1 : 0.4 } }, "\u{1F514}")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4 } }, /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: () => pin(n.id) }, "\u{1F4CC}"), /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: () => toggle(n.id) }, "\u2713"), /* @__PURE__ */ React.createElement("button", { className: "icon-btn", style: { color: "#ef444466" }, onClick: () => del(n.id) }, "\u2715"))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: "#c0d0e8", lineHeight: 1.6, whiteSpace: "pre-wrap", wordBreak: "break-word" } }, n.text), rdt && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, fontSize: 10, color: past ? "#ef4444" : "#60a5fa", fontFamily: "monospace" } }, past ? "\u26A0\uFE0F " : "", rdt.toLocaleString("ru-RU", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })));
     })), done.length > 0 && /* @__PURE__ */ React.createElement("details", null, /* @__PURE__ */ React.createElement("summary", { style: { cursor: "pointer", fontSize: 12, color: "#3a5a70", padding: "8px 0" } }, "\u0412\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043E (", done.length, ")"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 5, marginTop: 8, opacity: 0.5 } }, done.map((n) => /* @__PURE__ */ React.createElement("div", { key: n.id, style: { display: "flex", justifyContent: "space-between", background: "#0a1018", borderRadius: 7, padding: "7px 12px", fontSize: 12, color: "#3a5a70", textDecoration: "line-through" } }, n.text.slice(0, 60), n.text.length > 60 ? "\u2026" : "", /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: () => del(n.id) }, "\u2715"))))));
   }
+  function ReportTab({ ctx }) {
+    const { data } = ctx;
+    const { bookings, prices, specialPrices } = data;
+    const [copied, setCopied] = React.useState(false);
+    const MN = ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+    const MNS = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+    const DOW = ["вс","пн","вт","ср","чт","пт","сб"];
+
+    function buildText() {
+      let txt = "\u2501".repeat(28) + "\n";
+      txt += "\u{1F3D0} DYNAMO VODNY — Отчёт\n";
+      txt += new Date().toLocaleDateString("ru-RU", {day:"2-digit",month:"long",year:"numeric"}) + "\n";
+      txt += "\u2501".repeat(28) + "\n\n";
+
+      const sorted = [...bookings].sort((a,b) => a.clientName.localeCompare(b.clientName,"ru"));
+      let grandTotal = 0, grandPaid = 0;
+
+      sorted.forEach((bk, i) => {
+        const total = calcTotal(bk, prices, specialPrices);
+        const paid = bk.totalPaid || 0;
+        const debt = total - paid;
+        const dates = allDates(bk);
+        const hours = (bk.slots||[]).reduce((s,sl) => {
+          const mins = (norm(sl.timeEnd) - t2m(sl.timeStart));
+          return s + mins/60 * slotDates(sl).length;
+        }, 0);
+
+        // Group dates by month
+        const byMonth = {};
+        dates.forEach(d => {
+          const dt = ld(d);
+          const mk = MNS[dt.getMonth()];
+          if (!byMonth[mk]) byMonth[mk] = [];
+          byMonth[mk].push(dt.getDate());
+        });
+        const datesStr = Object.entries(byMonth).map(([m,ds]) => m + ": " + ds.join(", ")).join("  |  ");
+
+        txt += (i+1) + ". " + bk.clientName + "\n";
+
+        // Slots info
+        (bk.slots||[]).forEach(sl => {
+          const courts = (sl.courts||[]).map(id => {
+            const ct = ALL_COURTS.find(c=>c.id===id);
+            return ct ? ct.name : "К"+id;
+          }).join("+");
+          const dows = (sl.dow||[]).map(d=>DOW[d]).join(",");
+          const n = slotDates(sl).length;
+          txt += "   " + courts + " · " + sl.timeStart + "–" + sl.timeEnd + " · " + dows + " · " + n + " зан.\n";
+        });
+
+        txt += "   Дней: " + dates.length + " · Часов: " + hours.toFixed(1) + "\n";
+        txt += "   " + MNS.filter((_,mi) => Object.keys(byMonth).includes(MNS[mi])).length;
+        if (datesStr) txt += "   " + datesStr + "\n";
+        txt += "   Сумма: " + total.toLocaleString() + " ₽";
+        if (paid > 0) txt += "  ·  Оплачено: " + paid.toLocaleString() + " ₽";
+        if (debt > 0) txt += "  ·  Долг: " + debt.toLocaleString() + " ₽";
+        if (bk.isFree) txt += "  ·  БЕСПЛАТНО";
+        txt += "\n";
+        if (bk.hasContract) txt += "   Договор: " + (bk.contractSigned ? "подписан ✅" : "не подписан ⚠️") + "\n";
+        txt += "\n";
+
+        grandTotal += total;
+        grandPaid += paid;
+      });
+
+      txt += "\u2501".repeat(28) + "\n";
+      txt += "Клиентов: " + bookings.length + "\n";
+      txt += "Итого: " + grandTotal.toLocaleString() + " ₽\n";
+      txt += "Оплачено: " + grandPaid.toLocaleString() + " ₽\n";
+      const gd = grandTotal - grandPaid;
+      if (gd > 0) txt += "Долг: " + gd.toLocaleString() + " ₽\n";
+      txt += "\u2501".repeat(28);
+      return txt;
+    }
+
+    const text = buildText();
+
+    const copy = async () => {
+      try { await navigator.clipboard.writeText(text); }
+      catch(e) {
+        const t = document.createElement("textarea");
+        t.value = text; t.style.cssText = "position:fixed;opacity:0";
+        document.body.appendChild(t); t.select();
+        document.execCommand("copy"); document.body.removeChild(t);
+      }
+      setCopied(true); setTimeout(() => setCopied(false), 2500);
+    };
+
+    return /* @__PURE__ */ React.createElement("div", { style: { maxWidth: 700 } },
+      /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" } },
+        /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: copy },
+          copied ? "\u2713 Скопировано!" : "\u{1F4CB} Копировать отчёт"),
+        /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "#3a5a70", alignSelf: "center" } },
+          "Вставьте в Word / Google Docs / Telegram")),
+      /* @__PURE__ */ React.createElement("pre", { style: {
+        background: "#080d18", border: "1px solid #1e3a5a", borderRadius: 10,
+        padding: "16px 18px", fontFamily: "'Courier New',monospace", fontSize: 12,
+        color: "#c8d0e8", lineHeight: 1.8, whiteSpace: "pre-wrap", wordBreak: "break-word",
+        maxHeight: "75vh", overflowY: "auto"
+      } }, text));
+  }
+
+
   function SettingsTab({ ctx }) {
     const { data, save, toast, syncSt, syncMsg, setSyncSt, setSyncMsg, cloudLoad, cloudSave } = ctx;
     const [p, setP] = useState(__spreadValues({}, data.prices));
@@ -1838,14 +2120,28 @@ react-dom/cjs/react-dom-client.production.js:
           startDate: bk._prefDate || sl.startDate,
           endDate: bk._prefDate || sl.endDate,
           dow: bk._prefDate ? [ld(bk._prefDate).getDay()] : sl.dow,
-          courts: bk._prefCourt ? [bk._prefCourt] : sl.courts,
-          timeStart: bk._prefTimeStart || sl.timeStart,
-          timeEnd: bk._prefTimeEnd || sl.timeEnd
+          courts: bk._prefCourt ? [bk._prefCourt] : sl.courts
         });
         setF((p) => __spreadProps(__spreadValues({}, p), { slots: [newSl, ...p.slots.slice(1)] }));
       }
     }, []);
-    const updSlot = (idx, k, v) => setF((p) => __spreadProps(__spreadValues({}, p), { slots: p.slots.map((sl, i) => i === idx ? __spreadProps(__spreadValues({}, sl), { [k]: v }) : sl) }));
+    const updSlot = (idx, k, v) => setF((p) => {
+      const newSlots = p.slots.map((sl, i) => {
+        if (i !== idx) return sl;
+        const updated = __spreadProps(__spreadValues({}, sl), { [k]: v });
+        // When start/end date changes and they're equal (single day), auto-set dow
+        if (k === "startDate" || k === "endDate") {
+          const sd = k === "startDate" ? v : sl.startDate;
+          const ed = k === "endDate" ? v : sl.endDate;
+          if (sd && ed && sd === ed) {
+            const dow = new Date(sd + "T00:00:00").getDay();
+            updated.dow = [dow];
+          }
+        }
+        return updated;
+      });
+      return __spreadProps(__spreadValues({}, p), { slots: newSlots });
+    });
     const addSlot = () => setF((p) => __spreadProps(__spreadValues({}, p), { slots: [...p.slots, mkSlot()] }));
     const delSlot = (idx) => setF((p) => __spreadProps(__spreadValues({}, p), { slots: p.slots.filter((_, i) => i !== idx) }));
     const toggleSlotCourt = (idx, id) => updSlot(
@@ -1960,7 +2256,7 @@ react-dom/cjs/react-dom-client.production.js:
           /* === SLOTS === */
           f.slots.map((sl, idx) => {
             const dates = slotDates(sl);
-            const cost = slotRate(sl, prices, specH, f.isOrg) * dates.length;
+            const cost = dates.reduce((s, d) => s + slotRate(sl, prices, specH, f.isOrg, d), 0);
             return /* @__PURE__ */ React.createElement("div", { key: sl.id, style: {
               background: "#080e1c", border: "1px solid #1a2d4a",
               borderRadius: 10, padding: "12px 14px", marginBottom: 10
@@ -1976,14 +2272,14 @@ react-dom/cjs/react-dom-client.production.js:
                 ALL_COURTS.map((ct) => {
                   const sel = sl.courts.includes(ct.id);
                   const st = courtStatus(idx, ct.id);
-                  const dotCol = sel ? "#60a5fa" : st === "conflict" ? "#ef4444" : "#34d399";
+                  const dotCol = sel ? "#60a5fa" : st === "full" ? "#ef4444" : st === "partial" ? "#fbbf24" : "#34d399";
                   return /* @__PURE__ */ React.createElement("div", { key: ct.id,
                     onClick: () => toggleSlotCourt(idx, ct.id),
                     style: {
                       display: "flex", alignItems: "center", gap: 5, cursor: "pointer",
                       padding: "5px 10px", borderRadius: 7, userSelect: "none",
-                      border: "1.5px solid " + (sel ? "#60a5fa" : st === "conflict" ? "#ef4444" : "#34d39944"),
-                      background: sel ? "#0c1e38" : "rgba(52,211,153,.04)", fontSize: 12
+                      border: "1.5px solid " + (sel ? "#60a5fa" : st === "full" ? "#ef4444" : st === "partial" ? "#fbbf2444" : "#34d39944"),
+                      background: sel ? "#0c1e38" : st === "full" ? "rgba(239,68,68,.08)" : st === "partial" ? "rgba(251,191,36,.06)" : "rgba(52,211,153,.04)", fontSize: 12
                     } },
                     /* @__PURE__ */ React.createElement("span", { style: { width: 6, height: 6, borderRadius: "50%", background: dotCol, flexShrink: 0 } }),
                     /* @__PURE__ */ React.createElement("span", { style: { color: sel ? "#c0d8f0" : "#6a9ab8", fontWeight: sel ? 600 : 400 } },
@@ -2008,10 +2304,9 @@ react-dom/cjs/react-dom-client.production.js:
               /* @__PURE__ */ React.createElement("label", { className: "lbl" }, "\u0414\u043d\u0438 \u043d\u0435\u0434\u0435\u043b\u0438"),
               /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 12 } },
                 [1,2,3,4,5,6,0].map((d) => /* @__PURE__ */ React.createElement("button", { key: d,
-                  type: "button",
                   className: "btn btn-sm " + (sl.dow.includes(d) ? "btn-primary" : "btn-ghost"),
                   style: { minWidth: 44, justifyContent: "center" },
-                  onClick: (e) => { e.preventDefault(); e.stopPropagation(); toggleSlotDow(idx, d); } },
+                  onClick: () => toggleSlotDow(idx, d) },
                   DLBLS[d]))),
 
               /* date range */
@@ -2047,6 +2342,10 @@ react-dom/cjs/react-dom-client.production.js:
                 })),
 
               /* slot summary */
+              dates.length === 0 && sl.startDate && sl.dow && sl.dow.length > 0 && /* @__PURE__ */ React.createElement("div", { style: {
+                fontSize: 12, color: "#f97316", background: "rgba(249,115,22,.06)",
+                border: "1px solid rgba(249,115,22,.2)", borderRadius: 7, padding: "6px 12px"
+              } }, "\u26a0\ufe0f 0 \u0437\u0430\u043d\u044f\u0442\u0438\u0439 \u2014 \u0434\u0435\u043d\u044c \u043d\u0435\u0434\u0435\u043b\u0438 \u043d\u0435 \u0441\u043e\u0432\u043f\u0430\u0434\u0430\u0435\u0442 \u0441 \u0434\u0430\u0442\u0430\u043c\u0438"),
               dates.length > 0 && /* @__PURE__ */ React.createElement("div", { style: {
                 fontSize: 12, color: "#34d399", background: "rgba(52,211,153,.06)",
                 border: "1px solid rgba(52,211,153,.15)", borderRadius: 7, padding: "8px 12px"
@@ -2328,46 +2627,67 @@ react-dom/cjs/react-dom-client.production.js:
   function SessionsModal({ ctx, bk }) {
     const { data, save, close } = ctx;
     const dates = allDates(bk);
-    const setSess = (date, slotId, status) => {
-      const newSess = [...(bk.sessions || []).filter((s) => !(s.date === date && s.slotId === slotId)), { date, slotId, status }];
-      let cs = __spreadValues({}, data.clientStats);
-      if (!cs[bk.clientName]) cs[bk.clientName] = { cancels: 0, postpones: 0 };
-      if (status === "cancel_client" || status === "cancel_club") cs[bk.clientName].cancels = (cs[bk.clientName].cancels || 0) + 1;
-      if (status === "moved") cs[bk.clientName].postpones = (cs[bk.clientName].postpones || 0) + 1;
-      const _sessLog = "\u{1F4CB} \u0421\u0442\u0430\u0442\u0443\u0441 " + bk.clientName + " " + date + ": " + (status || "ok");
-      save(__spreadProps(__spreadValues({}, data), { clientStats: cs, bookings: data.bookings.map((b) => b.id === bk.id ? __spreadProps(__spreadValues({}, b), { sessions: newSess }) : b) }), _sessLog);
+    const [localSess, setLocalSess] = useState(function() { return (bk.sessions || []).slice(); });
+
+    const setSess = function(date, slotId, status) {
+      setLocalSess(function(prev) {
+        var filtered = prev.filter(function(s) { return !(s.date === date && s.slotId === slotId); });
+        return status ? filtered.concat([{ date: date, slotId: slotId, status: status }]) : filtered;
+      });
     };
-    return /* @__PURE__ */ React.createElement("div", { className: "overlay", onClick: (e) => e.target === e.currentTarget && close() }, /* @__PURE__ */ React.createElement("div", { className: "modal" }, /* @__PURE__ */ React.createElement("div", { className: "modal-header" }, /* @__PURE__ */ React.createElement("div", { className: "mh" }, "\u0416\u0443\u0440\u043D\u0430\u043B \u0437\u0430\u043D\u044F\u0442\u0438\u0439 \u2014 ", bk.clientName), /* @__PURE__ */ React.createElement("button", { className: "icon-btn", onClick: close }, "\u2715")), /* @__PURE__ */ React.createElement("div", { className: "modal-body" }, /* @__PURE__ */ React.createElement("div", { style: { maxHeight: 400, overflowY: "auto" } }, dates.map((date) => {
-      const slots = slotsOnDate(bk, date);
-      return /* @__PURE__ */ React.createElement("div", { key: date, style: { marginBottom: 10, padding: "8px 10px", background: "#0a1018", borderRadius: 8 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, fontWeight: 700, color: "#4a6a8a", marginBottom: 6 } }, date, " \xB7 ", DR[ld(date).getDay()]), slots.map((sl) => {
-        var _a;
-        const sess = (_a = bk.sessions) == null ? void 0 : _a.find((s) => s.date === date && s.slotId === sl.id);
-        const stO = ST.find((s) => s.id === (sess == null ? void 0 : sess.status));
-        return /* @__PURE__ */ React.createElement("div", { key: sl.id, style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6, marginBottom: 6 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: "#3a5a70" } }, (sl.courts || []).map((id) => {
-          var _a2;
-          return ((_a2 = ALL_COURTS.find((c) => c.id === id)) == null ? void 0 : _a2.name) || id;
-        }).join("+"), " ", sl.timeStart, "\u2013", sl.timeEnd), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap" } }, ST.map((s) => /* @__PURE__ */ React.createElement(
-          "button",
-          {
-            key: s.id,
-            onClick: () => setSess(date, sl.id, (sess == null ? void 0 : sess.status) === s.id ? void 0 : s.id),
-            style: {
-              padding: "3px 8px",
-              borderRadius: 6,
-              border: `1px solid ${(sess == null ? void 0 : sess.status) === s.id ? s.col : "#1a2a40"}`,
-              background: (sess == null ? void 0 : sess.status) === s.id ? `${s.col}22` : "transparent",
-              cursor: "pointer",
-              fontSize: 11,
-              color: (sess == null ? void 0 : sess.status) === s.id ? s.col : "#3a5a70"
-            }
-          },
-          s.icon,
-          " ",
-          s.label
-        ))));
-      }));
-    })), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", style: { width: "100%", justifyContent: "center", marginTop: 8 }, onClick: close }, "\u0417\u0430\u043A\u0440\u044B\u0442\u044C"))));
+
+    const saveSessions = function() {
+      var cs = Object.assign({}, data.clientStats);
+      // Пересчитываем с нуля:
+      // postpones = отмены/переносы → нужно отыграть (cancel_client, cancel_club, moved)
+      // absents = не пришли без предупреждения → сгорает
+      var newPostpones = localSess.filter(function(s) { return s.status === "cancel_client" || s.status === "cancel_club" || s.status === "moved"; }).length;
+      var newAbsents = localSess.filter(function(s) { return s.status === "absent"; }).length;
+      cs[bk.clientName] = Object.assign({}, cs[bk.clientName] || {}, { cancels: newPostpones, postpones: newAbsents });
+      save(Object.assign({}, data, { clientStats: cs, bookings: data.bookings.map(function(b) {
+        return b.id === bk.id ? Object.assign({}, b, { sessions: localSess }) : b;
+      }) }), "\u{1F4CB} \u0421\u0435\u0430\u043d\u0441\u044b " + bk.clientName);
+      close();
+    };
+
+    return /* @__PURE__ */ React.createElement("div", { className: "overlay", onClick: function(e) { if (e.target === e.currentTarget) close(); } },
+      React.createElement("div", { className: "modal" },
+        React.createElement("div", { className: "modal-header" },
+          React.createElement("div", { className: "mh" }, "\u0416\u0443\u0440\u043d\u0430\u043b \u0437\u0430\u043d\u044f\u0442\u0438\u0439 \u2014 ", bk.clientName),
+          React.createElement("button", { className: "icon-btn", onClick: close }, "\u2715")),
+        React.createElement("div", { className: "modal-body" },
+          React.createElement("div", { style: { maxHeight: 400, overflowY: "auto" } },
+            dates.map(function(date) {
+              var slots = slotsOnDate(bk, date);
+              var dt2=ld(date); var MNS3=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"]; var DOW3=["вс","пн","вт","ср","чт","пт","сб"]; var daySts=slots.map(function(sl3){var s3=localSess.find(function(s){return s.date===date&&s.slotId===sl3.id;});return s3?s3.status:null;}).filter(Boolean); var isCancel=daySts.some(function(st){return st==="cancel_client"||st==="cancel_club"||st==="moved";}); var isAbsent=daySts.some(function(st){return st==="absent";}); var isPresent=daySts.some(function(st){return st==="present";}); var dotCol2=isCancel?"#a78bfa":isAbsent?"#ef4444":isPresent?"#34d399":"#2a4a6a"; var bgCol2=isCancel?"rgba(167,139,250,.07)":isAbsent?"rgba(239,68,68,.06)":isPresent?"rgba(52,211,153,.06)":"#0a1018";
+              return React.createElement("div", { key: date, style: { marginBottom: 8, padding: "8px 10px", background: bgCol2, borderRadius: 8, border:"1px solid "+dotCol2+"33" } },
+                React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: dotCol2, marginBottom: 6 } }, dt2.getDate() + " " + MNS3[dt2.getMonth()] + " \xb7 " + DOW3[dt2.getDay()]),
+                slots.map(function(sl) {
+                  var sess = localSess.find(function(s) { return s.date === date && s.slotId === sl.id; });
+                  return React.createElement("div", { key: sl.id, style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6, marginBottom: 6 } },
+                    React.createElement("span", { style: { fontSize: 12, color: "#3a5a70" } },
+                      (sl.courts || []).map(function(id) { var ct = ALL_COURTS.find(function(c) { return c.id === id; }); return ct ? ct.name : id; }).join("+"),
+                      " ", sl.timeStart, "\u2013", sl.timeEnd),
+                    React.createElement("div", { style: { display: "flex", gap: 4, flexWrap: "wrap" } },
+                      ST.map(function(s) {
+                        var isActive = (sess && sess.status) === s.id;
+                        return React.createElement("button", { key: s.id,
+                          onClick: function() { setSess(date, sl.id, isActive ? undefined : s.id); },
+                          style: {
+                            padding: "3px 8px", borderRadius: 6, cursor: "pointer", fontSize: 11,
+                            border: "1px solid " + (isActive ? s.col : "#1a2a40"),
+                            background: isActive ? s.col + "22" : "transparent",
+                            color: isActive ? s.col : "#3a5a70"
+                          }
+                        }, s.icon, " ", s.label);
+                      })));
+                }));
+            })),
+          React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 8 } },
+            React.createElement("button", { className: "btn btn-primary", style: { flex: 1, justifyContent: "center" }, onClick: saveSessions }, "\u2705 \u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c"),
+            React.createElement("button", { className: "btn btn-ghost", style: { flex: 1, justifyContent: "center" }, onClick: close }, "\u041e\u0442\u043c\u0435\u043d\u0430")))));
   }
+
   function DetailModal({ ctx, bk }) {
     const { data, save, open, close } = ctx;
     const total = calcTotal(bk, data.prices, data.specialPrices);
