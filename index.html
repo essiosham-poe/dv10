@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="theme-color" content="#050a14"/>
-<title>DV Аренда🏐</title>
+<title>DV Arenda🏐</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:#050a14;min-height:100vh;font-family:sans-serif;}
@@ -23,7 +23,7 @@ html,body{background:#050a14;min-height:100vh;font-family:sans-serif;}
 <div id="lock">
   <div style="background:#0c1525;border:1px solid #1e3a5a;border-radius:20px;padding:36px 32px;width:90%;max-width:340px;text-align:center;">
     <div style="font-size:52px;margin-bottom:14px">🏐</div>
-    <div style="font-size:20px;font-weight:900;color:#e0eeff;letter-spacing:.05em;margin-bottom:3px">DV Аренда</div>
+    <div style="font-size:20px;font-weight:900;color:#e0eeff;letter-spacing:.05em;margin-bottom:3px">DV Arenda</div>
     <div style="font-size:11px;color:#2a5a8a;letter-spacing:.1em;margin-bottom:26px;text-transform:uppercase">Система управления</div>
     <div id="pw-err" style="display:none;background:#1a0808;border:1px solid #3a1010;color:#ef4444;border-radius:8px;padding:9px 14px;font-size:13px;margin-bottom:12px">⚠️ Неверный пароль</div>
     <input id="pw" type="password" placeholder="Пароль"
@@ -2166,12 +2166,60 @@ react-dom/cjs/react-dom-client.production.js:
           if (!(bsl.courts || []).includes(courtId)) return;
           if (!ovlp(sl.timeStart, sl.timeEnd, bsl.timeStart, bsl.timeEnd)) return;
           const shared = dates.filter((d) => slotDates(bsl).includes(d));
-          if (shared.length) conflicts.push({ b, dates: shared });
+          if (shared.length) conflicts.push({ b, bsl, dates: shared });
         });
       }
       if (!conflicts.length) return "free";
       if (conflicts.flatMap((c) => c.dates).length === dates.length) return "full";
       return "partial";
+    }
+
+    // Returns detailed conflict info for tooltip
+    function courtInfo(slotIdx, courtId) {
+      const sl = f.slots[slotIdx];
+      const dates = slotDates(sl);
+      if (!dates.length) return null;
+      const conflicts = [];
+      for (const b of bookings) {
+        if (b.id === (bk == null ? void 0 : bk.id)) continue;
+        if (!bkCourts(b).includes(courtId)) continue;
+        (b.slots || legacySlots(b)).forEach((bsl) => {
+          if (!(bsl.courts || []).includes(courtId)) return;
+          if (!ovlp(sl.timeStart, sl.timeEnd, bsl.timeStart, bsl.timeEnd)) return;
+          const shared = dates.filter((d) => slotDates(bsl).includes(d));
+          if (shared.length) conflicts.push({ name: b.clientName, bsl, dates: shared });
+        });
+      }
+      // Find free vb alternatives: same time, other courts
+      const DOW = sl.dow || [];
+      const freeCourts = ALL_COURTS.filter(ct => {
+        if (ct.t === "fb" || ct.id === courtId) return false;
+        return !bookings.some(b => {
+          if (b.id === (bk == null ? void 0 : bk.id)) return false;
+          return (b.slots || legacySlots(b)).some(bsl => {
+            if (!(bsl.courts || []).includes(ct.id)) return false;
+            if (!ovlp(sl.timeStart, sl.timeEnd, bsl.timeStart, bsl.timeEnd)) return false;
+            return dates.some(d => slotDates(bsl).includes(d));
+          });
+        });
+      });
+      // Find free time slots for same court (before/after ±30/60/90min)
+      const altTimes = [];
+      [-90,-60,-30,30,60,90].forEach(offset => {
+        const adjTs = t2m(sl.timeStart) + offset;
+        const adjTe = t2m(sl.timeEnd) + offset;
+        if (adjTs < 7*60 || adjTe > 23*60) return;
+        const hasBusy = bookings.some(b => {
+          if (b.id === (bk == null ? void 0 : bk.id)) return false;
+          return (b.slots || legacySlots(b)).some(bsl => {
+            if (!(bsl.courts || []).includes(courtId)) return false;
+            return ovlp(m2t(adjTs), m2t(adjTe), bsl.timeStart, bsl.timeEnd) &&
+              dates.some(d => slotDates(bsl).includes(d));
+          });
+        });
+        if (!hasBusy) altTimes.push({ ts: adjTs, te: adjTe, offset });
+      });
+      return { conflicts, freeCourts: freeCourts.slice(0,5), altTimes: altTimes.slice(0,3) };
     }
     const specH = (specialPrices || {})[f.clientName] || f.customPricePerHour || 0;
     const total = calcTotal(__spreadProps(__spreadValues({}, f), { id: "_" }), prices, specialPrices);
@@ -2210,6 +2258,7 @@ react-dom/cjs/react-dom-client.production.js:
 
 
     const [showExtras, setShowExtras] = React.useState(!!(bk && (bk.ballCount || bk.ballStorage || bk.isFree || bk.customPricePerHour || bk.hasContract)));
+    const [courtTip, setCourtTip] = React.useState(null); // {slotIdx, courtId, info}
     const MF2 = ["\u044f\u043d\u0432","\u0444\u0435\u0432","\u043c\u0430\u0440","\u0430\u043f\u0440","\u043c\u0430\u0439","\u0438\u044e\u043d","\u0438\u044e\u043b","\u0430\u0432\u0433","\u0441\u0435\u043d","\u043e\u043a\u0442","\u043d\u043e\u044f","\u0434\u0435\u043a"];
 
     return /* @__PURE__ */ React.createElement("div", { className: "overlay", onClick: (e) => e.target === e.currentTarget && close() },
@@ -2273,18 +2322,89 @@ react-dom/cjs/react-dom-client.production.js:
                   const sel = sl.courts.includes(ct.id);
                   const st = courtStatus(idx, ct.id);
                   const dotCol = sel ? "#60a5fa" : st === "full" ? "#ef4444" : st === "partial" ? "#fbbf24" : "#34d399";
-                  return /* @__PURE__ */ React.createElement("div", { key: ct.id,
-                    onClick: () => toggleSlotCourt(idx, ct.id),
-                    style: {
-                      display: "flex", alignItems: "center", gap: 5, cursor: "pointer",
-                      padding: "5px 10px", borderRadius: 7, userSelect: "none",
-                      border: "1.5px solid " + (sel ? "#60a5fa" : st === "full" ? "#ef4444" : st === "partial" ? "#fbbf2444" : "#34d39944"),
-                      background: sel ? "#0c1e38" : st === "full" ? "rgba(239,68,68,.08)" : st === "partial" ? "rgba(251,191,36,.06)" : "rgba(52,211,153,.04)", fontSize: 12
-                    } },
-                    /* @__PURE__ */ React.createElement("span", { style: { width: 6, height: 6, borderRadius: "50%", background: dotCol, flexShrink: 0 } }),
-                    /* @__PURE__ */ React.createElement("span", { style: { color: sel ? "#c0d8f0" : "#6a9ab8", fontWeight: sel ? 600 : 400 } },
-                      ct.t === "fb" ? "\u26bd " : "", ct.name));
+                  const tipOpen = courtTip && courtTip.slotIdx === idx && courtTip.courtId === ct.id;
+                  return /* @__PURE__ */ React.createElement("div", { key: ct.id, style: { position: "relative" } },
+                    /* @__PURE__ */ React.createElement("div", {
+                      onClick: () => toggleSlotCourt(idx, ct.id),
+                      onMouseEnter: () => { if (st !== "free" && st !== "unknown") setCourtTip({ slotIdx: idx, courtId: ct.id, info: courtInfo(idx, ct.id) }); },
+                      onMouseLeave: () => setCourtTip(null),
+                      style: {
+                        display: "flex", alignItems: "center", gap: 5, cursor: "pointer",
+                        padding: "5px 10px", borderRadius: 7, userSelect: "none",
+                        border: "1.5px solid " + (sel ? "#60a5fa" : st === "full" ? "#ef4444" : st === "partial" ? "#fbbf2444" : "#34d39944"),
+                        background: sel ? "#0c1e38" : st === "full" ? "rgba(239,68,68,.08)" : st === "partial" ? "rgba(251,191,36,.06)" : "rgba(52,211,153,.04)", fontSize: 12
+                      } },
+                      /* @__PURE__ */ React.createElement("span", { style: { width: 6, height: 6, borderRadius: "50%", background: dotCol, flexShrink: 0 } }),
+                      /* @__PURE__ */ React.createElement("span", { style: { color: sel ? "#c0d8f0" : "#6a9ab8", fontWeight: sel ? 600 : 400 } },
+                        ct.t === "fb" ? "\u26bd " : "", ct.name)),
+                    tipOpen && courtTip.info && /* @__PURE__ */ React.createElement("div", {
+                      style: {
+                        position: "absolute", top: "100%", left: 0, zIndex: 999, marginTop: 4,
+                        background: "#0a1525", border: "1px solid #1e3a5a", borderRadius: 10,
+                        padding: "10px 14px", minWidth: 220, maxWidth: 280,
+                        boxShadow: "0 8px 30px #000e", fontSize: 11
+                      }
+                    },
+                      /* who is blocking */
+                      courtTip.info.conflicts.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 8 } },
+                        /* @__PURE__ */ React.createElement("div", { style: { color: "#ef4444", fontWeight: 700, marginBottom: 4 } },
+                          "\u26a0\ufe0f \u0417\u0430\u043d\u044f\u0442\u043e:"),
+                        courtTip.info.conflicts.map((c, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { color: "#c0a0a0", marginBottom: 2 } },
+                          "\u2022 " + c.name + " · " + c.bsl.timeStart + "\u2013" + c.bsl.timeEnd +
+                          " \u00b7 " + c.dates.length + " \u0434\u043d."))),
+                      /* free vb courts */
+                      courtTip.info.freeCourts.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 8 } },
+                        /* @__PURE__ */ React.createElement("div", { style: { color: "#34d399", fontWeight: 700, marginBottom: 4 } },
+                          "\u{1F3D0} \u0421\u0432\u043e\u0431\u043e\u0434\u043d\u044b\u0435:"),
+                        /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 4 } },
+                          courtTip.info.freeCourts.map(ct2 => /* @__PURE__ */ React.createElement("span", {
+                            key: ct2.id,
+                            onClick: (e) => { e.stopPropagation(); toggleSlotCourt(idx, ct2.id); setCourtTip(null); },
+                            style: {
+                              padding: "3px 8px", borderRadius: 6, cursor: "pointer",
+                              background: "rgba(52,211,153,.15)", border: "1px solid rgba(52,211,153,.3)",
+                              color: "#34d399", fontWeight: 700
+                            }
+                          }, "\u041a" + ct2.id + " \u2192")))),
+                      /* alt times */
+                      courtTip.info.altTimes.length > 0 && /* @__PURE__ */ React.createElement("div", null,
+                        /* @__PURE__ */ React.createElement("div", { style: { color: "#60a5fa", fontWeight: 700, marginBottom: 4 } },
+                          "\u23f0 \u0411\u043b\u0438\u0436\u0430\u0439\u0448\u0435\u0435 \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f:"),
+                        courtTip.info.altTimes.map((t, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { color: "#7a9ab8", marginBottom: 2 } },
+                          "\u2022 " + m2t(t.ts) + "\u2013" + m2t(t.te) +
+                          " (" + (t.offset > 0 ? "+" : "") + t.offset + "\u043c\u0438\u043d)")))));
                 })),
+
+              /* availability summary panel */
+              sl.startDate && sl.dow && sl.dow.length > 0 && sl.timeStart && sl.timeEnd && (() => {
+                const dates = slotDates(sl);
+                if (!dates.length) return null;
+                // Count free VB courts for these dates/time
+                const freeCts = ALL_COURTS.filter(ct => ct.t !== "fb" && courtStatus(idx, ct.id) === "free");
+                const partCts = ALL_COURTS.filter(ct => ct.t !== "fb" && courtStatus(idx, ct.id) === "partial");
+                const fullCts = ALL_COURTS.filter(ct => ct.t !== "fb" && courtStatus(idx, ct.id) === "full");
+                const totalVB = ALL_COURTS.filter(ct => ct.t !== "fb").length;
+                const pct = Math.round(freeCts.length / totalVB * 100);
+                const barColor = pct >= 70 ? "#34d399" : pct >= 40 ? "#fbbf24" : "#ef4444";
+                return /* @__PURE__ */ React.createElement("div", { style: {
+                  marginBottom: 10, padding: "8px 12px",
+                  background: "rgba(10,20,40,.6)", border: "1px solid #1a2d4a", borderRadius: 8
+                } },
+                  /* Bar */
+                  /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 6 } },
+                    /* @__PURE__ */ React.createElement("div", { style: { flex: 1, height: 6, background: "#0e1828", borderRadius: 3, overflow: "hidden" } },
+                      /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: pct + "%", background: barColor, borderRadius: 3, transition: "width .3s" } })),
+                    /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, fontWeight: 700, color: barColor, flexShrink: 0 } },
+                      freeCts.length + "/" + totalVB + " \u0441\u0432\u043e\u0431.")),
+                  /* Legend */
+                  /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 10, fontSize: 10, flexWrap: "wrap" } },
+                    freeCts.length > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#34d399" } },
+                      "\u{1F7E2} \u0421\u0432\u043e\u0431: " + freeCts.map(c=>c.id).join(", ")),
+                    partCts.length > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#fbbf24" } },
+                      "\u{1F7E1} \u0427\u0430\u0441\u0442.: " + partCts.map(c=>c.id).join(", ")),
+                    fullCts.length > 0 && /* @__PURE__ */ React.createElement("span", { style: { color: "#ef4444" } },
+                      "\u{1F534} \u0417\u0430\u043d.: " + fullCts.map(c=>c.id).join(", "))));
+              })(),
 
               /* time */
               /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 12, alignItems: "flex-end" } },
