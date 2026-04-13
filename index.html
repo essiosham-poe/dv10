@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="theme-color" content="#050a14"/>
-<title>DV Arenda🏐</title>
+<title>Dynamo Vodny 🏐</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:#050a14;min-height:100vh;font-family:sans-serif;}
@@ -23,7 +23,7 @@ html,body{background:#050a14;min-height:100vh;font-family:sans-serif;}
 <div id="lock">
   <div style="background:#0c1525;border:1px solid #1e3a5a;border-radius:20px;padding:36px 32px;width:90%;max-width:340px;text-align:center;">
     <div style="font-size:52px;margin-bottom:14px">🏐</div>
-    <div style="font-size:20px;font-weight:900;color:#e0eeff;letter-spacing:.05em;margin-bottom:3px">DV Arenda</div>
+    <div style="font-size:20px;font-weight:900;color:#e0eeff;letter-spacing:.05em;margin-bottom:3px">DYNAMO VODNY</div>
     <div style="font-size:11px;color:#2a5a8a;letter-spacing:.1em;margin-bottom:26px;text-transform:uppercase">Система управления</div>
     <div id="pw-err" style="display:none;background:#1a0808;border:1px solid #3a1010;color:#ef4444;border-radius:8px;padding:9px 14px;font-size:13px;margin-bottom:12px">⚠️ Неверный пароль</div>
     <input id="pw" type="password" placeholder="Пароль"
@@ -240,6 +240,10 @@ react-dom/cjs/react-dom-client.production.js:
   }
   function slotDates(sl) {
     var _a;
+    if (sl && sl.specificDates && sl.specificDates.length > 0) {
+      const excl = sl.excludeDates || [];
+      return sl.specificDates.filter(function(d) { return !excl.includes(d); }).sort();
+    }
     if (!(sl == null ? void 0 : sl.startDate) || !(sl == null ? void 0 : sl.endDate) || !((_a = sl == null ? void 0 : sl.dow) == null ? void 0 : _a.length)) return [];
     const out = [], s = ld(sl.startDate), e = ld(sl.endDate);
     const excl = sl.excludeDates || [];
@@ -301,7 +305,7 @@ react-dom/cjs/react-dom-client.production.js:
   }
   function calcTotal(bk, prices, specPrices) {
     if (bk.isFree) return 0;
-    const specH = bk.customPricePerHour || (specPrices || {})[bk.clientName] || 0;
+    const specH = (bk.customPricePerHour != null && bk.customPricePerHour > 0) ? bk.customPricePerHour : ((specPrices || {})[bk.clientName] || 0);
     const slots = bk.slots || legacySlots(bk);
     // Calculate per-date so weekday/weekend is correct for each session
     const sum = slots.reduce((s, sl) => {
@@ -605,7 +609,7 @@ react-dom/cjs/react-dom-client.production.js:
                   /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#3a6abb" }),
                   /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#0a1830" }))),
               /* @__PURE__ */ React.createElement("path", { d: "M16 1 Q24 8 31 16 Q24 24 16 31 Q8 24 1 16 Q8 8 16 1Z", fill: "none", stroke: "#fbbf24", strokeWidth: "1.2", opacity: "0.8" })),
-            /* @__PURE__ */ React.createElement("span", { className: "logo-title" }, "DYNAMO")),
+            /* @__PURE__ */ React.createElement("span", { className: "logo-title" }, "")),
           /* @__PURE__ */ React.createElement("nav", { className: "sidebar-nav" },
             TABS.map((t) => /* @__PURE__ */ React.createElement("button", { key: t.id,
               className: `ntab${tab === t.id ? " ntab-on" : ""}`,
@@ -616,7 +620,7 @@ react-dom/cjs/react-dom-client.production.js:
           /* @__PURE__ */ React.createElement("div", { className: "sidebar-actions" },
             conflicts.length > 0 && /* @__PURE__ */ React.createElement("button", { className: "conflict-pill", style: { textAlign: "center" }, onClick: () => setTab("alerts") }, "\u26A0\uFE0F ", conflicts.length, " \u043a\u043e\u043d\u0444."),
             /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", style: { justifyContent: "center" }, onClick: () => open("booking", null) }, "\uFF0B \u0411\u0440\u043E\u043D\u044C"))),
-        !weekFull && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("header", { className: "hdr" }, /* @__PURE__ */ React.createElement("div", { className: "hdr-logo" }, /* @__PURE__ */ React.createElement("svg", { width: "32", height: "32", viewBox: "0 0 32 32", className: "logo-ball" }, /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "#1a3060", stroke: "#60a5fa", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "url(#bv_grad)", stroke: "#2a5a9a", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("radialGradient", { id: "bv_grad", cx: "35%", cy: "30%" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#3a6abb" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#0a1830" }))), /* @__PURE__ */ React.createElement("path", { d: "M16 1 Q24 8 31 16 Q24 24 16 31 Q8 24 1 16 Q8 8 16 1Z", fill: "none", stroke: "#fbbf24", strokeWidth: "1.2", opacity: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M1 16 Q8 8 16 1 Q20 10 18 16 Q20 22 16 31 Q8 24 1 16Z", fill: "#1e4a9a", opacity: "0.5" }), /* @__PURE__ */ React.createElement("path", { d: "M31 16 Q24 24 16 31 Q12 22 14 16 Q12 10 16 1 Q24 8 31 16Z", fill: "#fbbf2422", opacity: "0.6" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "4", fill: "none", stroke: "#fbbf2466", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M10 6 Q16 12 22 6", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M6 22 Q12 16 6 10", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M26 10 Q20 16 26 22", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "logo-title" }, "DV Аренда"))), /* @__PURE__ */ React.createElement("div", { className: "hdr-actions" }, conflicts.length > 0 && /* @__PURE__ */ React.createElement("button", { className: "conflict-pill", onClick: () => setTab("alerts") }, "\u26A0\uFE0F ", conflicts.length), remAlert && /* @__PURE__ */ React.createElement("button", { className: "rem-pill", onClick: () => {
+        !weekFull && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("header", { className: "hdr" }, /* @__PURE__ */ React.createElement("div", { className: "hdr-logo" }, /* @__PURE__ */ React.createElement("svg", { width: "32", height: "32", viewBox: "0 0 32 32", className: "logo-ball" }, /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "#1a3060", stroke: "#60a5fa", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "15", fill: "url(#bv_grad)", stroke: "#2a5a9a", strokeWidth: "1.5" }), /* @__PURE__ */ React.createElement("defs", null, /* @__PURE__ */ React.createElement("radialGradient", { id: "bv_grad", cx: "35%", cy: "30%" }, /* @__PURE__ */ React.createElement("stop", { offset: "0%", stopColor: "#3a6abb" }), /* @__PURE__ */ React.createElement("stop", { offset: "100%", stopColor: "#0a1830" }))), /* @__PURE__ */ React.createElement("path", { d: "M16 1 Q24 8 31 16 Q24 24 16 31 Q8 24 1 16 Q8 8 16 1Z", fill: "none", stroke: "#fbbf24", strokeWidth: "1.2", opacity: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M1 16 Q8 8 16 1 Q20 10 18 16 Q20 22 16 31 Q8 24 1 16Z", fill: "#1e4a9a", opacity: "0.5" }), /* @__PURE__ */ React.createElement("path", { d: "M31 16 Q24 24 16 31 Q12 22 14 16 Q12 10 16 1 Q24 8 31 16Z", fill: "#fbbf2422", opacity: "0.6" }), /* @__PURE__ */ React.createElement("circle", { cx: "16", cy: "16", r: "4", fill: "none", stroke: "#fbbf2466", strokeWidth: "0.8" }), /* @__PURE__ */ React.createElement("path", { d: "M10 6 Q16 12 22 6", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M6 22 Q12 16 6 10", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" }), /* @__PURE__ */ React.createElement("path", { d: "M26 10 Q20 16 26 22", fill: "none", stroke: "#60a5fa88", strokeWidth: "1" })), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "logo-title" }, "DV Clients"))), /* @__PURE__ */ React.createElement("div", { className: "hdr-actions" }, conflicts.length > 0 && /* @__PURE__ */ React.createElement("button", { className: "conflict-pill", onClick: () => setTab("alerts") }, "\u26A0\uFE0F ", conflicts.length), remAlert && /* @__PURE__ */ React.createElement("button", { className: "rem-pill", onClick: () => {
       setTab("notes");
       setRemAlert(null);
     } }, "\u{1F514} ", remAlert.text.slice(0, 18), "\u2026"), syncSt !== "idle" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 5, background: "#0a1525", border: "1px solid #1e4a2a", borderRadius: 20, padding: "5px 10px", fontSize: 11, color: syncSt === "saved" ? "#34d399" : syncSt === "error" ? "#ef4444" : "#fbbf24" } }, /* @__PURE__ */ React.createElement("div", { style: { width: 6, height: 6, borderRadius: "50%", background: "currentColor", flexShrink: 0 } }), syncSt === "saved" ? `\u2601\uFE0F ${syncMsg}` : syncSt === "saving" ? "\u2601\uFE0F \u0421\u043E\u0445\u0440\u2026" : syncSt === "loading" ? "\u2601\uFE0F \u0417\u0430\u0433\u0440\u2026" : "\u26A0\uFE0F"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("calc", null) }, "\u{1F9EE}"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ai", onClick: () => open("ai", null) }, "\u{1F916} \u0410\u0441\u0441\u0438\u0441\u0442\u0435\u043D\u0442"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary", onClick: () => open("booking", null) }, "\uFF0B \u0411\u0440\u043E\u043D\u044C"))), /* @__PURE__ */ React.createElement("nav", { className: "nav" }, TABS.map((t) => /* @__PURE__ */ React.createElement("button", { key: t.id, className: `ntab${tab === t.id ? " ntab-on" : ""}`, onClick: () => setTab(t.id) }, /* @__PURE__ */ React.createElement("span", null, t.icon), /* @__PURE__ */ React.createElement("span", { className: "ntab-lbl" }, t.label), (t.badge || 0) > 0 && /* @__PURE__ */ React.createElement("span", { className: "nbadge" }, t.badge))))), /* @__PURE__ */ React.createElement("main", { className: weekFull ? "wfull-main" : "main" }, tab === "today" && /* @__PURE__ */ React.createElement(TodayTab, { ctx }), tab === "week" && /* @__PURE__ */ React.createElement(WeekTab, { ctx }), tab === "sched" && /* @__PURE__ */ React.createElement(DayTab, { ctx }), tab === "month" && /* @__PURE__ */ React.createElement(MonthTab, { ctx, onDay: (d) => {
@@ -936,7 +940,7 @@ react-dom/cjs/react-dom-client.production.js:
 
     // Revenue TODAY
     const todayRev = bks.reduce((s, b) => {
-      return s + slotsOnDate(b, today).reduce((ss, sl) => ss + slotRate(sl, data.prices, (data.specialPrices || {})[b.clientName] || b.customPricePerHour || 0), 0);
+      return s + slotsOnDate(b, today).reduce((ss, sl) => ss + slotRate(sl, data.prices, (data.specialPrices || {})[b.clientName] || ((b.customPricePerHour != null && b.customPricePerHour > 0) ? b.customPricePerHour : 0), b.isOrg), 0);
     }, 0);
 
     // Per-court status RIGHT NOW and upcoming
@@ -2090,7 +2094,9 @@ react-dom/cjs/react-dom-client.production.js:
       endDate: dkey(new Date((/* @__PURE__ */ new Date()).setMonth((/* @__PURE__ */ new Date()).getMonth() + 2))),
       dow: [],
       timeStart: "10:00",
-      timeEnd: "12:00"
+      timeEnd: "12:00",
+      mode: "period",
+      specificDates: []
     });
     const [f, setF] = useState({
       clientName: (bk == null ? void 0 : bk.clientName) || "",
@@ -2131,8 +2137,9 @@ react-dom/cjs/react-dom-client.production.js:
         const updated = __spreadProps(__spreadValues({}, sl), { [k]: v });
         // When start/end date changes and they're equal (single day), auto-set dow
         if (k === "startDate" || k === "endDate") {
+          if (k === "startDate" && sl.startDate === sl.endDate) { updated.endDate = v; }
           const sd = k === "startDate" ? v : sl.startDate;
-          const ed = k === "endDate" ? v : sl.endDate;
+          const ed = k === "endDate" ? v : (k === "startDate" && sl.startDate === sl.endDate ? v : sl.endDate);
           if (sd && ed && sd === ed) {
             const dow = new Date(sd + "T00:00:00").getDay();
             updated.dow = [dow];
@@ -2429,8 +2436,74 @@ react-dom/cjs/react-dom-client.production.js:
                   onClick: () => toggleSlotDow(idx, d) },
                   DLBLS[d]))),
 
-              /* date range */
-              /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 8 } },
+              /* MODE TOGGLE */
+              /* @__PURE__ */ React.createElement("div", { style: { display:"flex", gap:4, marginBottom:10, background:"#050a14", borderRadius:8, padding:3 } },
+                ["period","specific"].map(function(m) {
+                  return /* @__PURE__ */ React.createElement("button", { key:m,
+                    className:"btn btn-sm "+((sl.mode||"period")===m?"btn-primary":"btn-ghost"),
+                    style:{flex:1, justifyContent:"center", fontSize:12},
+                    onClick:function(){updSlot(idx,"mode",m);}
+                  }, m==="period"?"\u{1F4C5} \u041f\u0435\u0440\u0438\u043e\u0434":"\u{1F4CC} \u041a\u043e\u043d\u043a\u0440\u0435\u0442\u043d\u044b\u0435 \u0434\u043d\u0438");
+                })),
+              /* SPECIFIC DATES MODE */
+              (sl.mode||"period")==="specific" && /* @__PURE__ */ React.createElement("div", { style:{marginBottom:10} },
+                /* date picker */
+                /* @__PURE__ */ React.createElement("div", { style:{display:"flex",gap:6,marginBottom:8} },
+                  /* @__PURE__ */ React.createElement("input", { type:"date", className:"inp", style:{flex:1},
+                    onChange:function(e3) {
+                      var v=e3.target.value; if(!v) return;
+                      var cur=(sl.specificDates||[]);
+                      if(cur.includes(v)) return;
+                      updSlot(idx,"specificDates",[...cur,v].sort());
+                      e3.target.value="";
+                    }
+                  }),
+                  (sl.specificDates||[]).length>0 && /* @__PURE__ */ React.createElement("button",{
+                    className:"btn btn-danger btn-sm", style:{fontSize:11,padding:"4px 10px",flexShrink:0},
+                    onClick:function(){updSlot(idx,"specificDates",[]);}
+                  },"\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c")),
+                /* quick month add */
+                /* @__PURE__ */ React.createElement("div",{style:{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}},
+                  [["\u0418\u044e\u043d",5],["\u0418\u044e\u043b",6],["\u0410\u0432\u0433",7],["\u0421\u0435\u043d",8]].map(function(mi){
+                    return /* @__PURE__ */ React.createElement("button",{key:mi[0],
+                      className:"btn btn-ghost btn-sm",style:{fontSize:11,padding:"3px 8px"},
+                      onClick:function(){
+                        var yr=new Date().getFullYear(),mo=mi[1];
+                        var days=new Date(yr,mo+1,0).getDate(),newD=[];
+                        for(var day=1;day<=days;day++){
+                          var dt2=new Date(yr,mo,day),dk2=dkey(dt2);
+                          var dowOk=(sl.dow||[]).length===0||(sl.dow||[]).includes(dt2.getDay());
+                          if(dowOk&&!(sl.specificDates||[]).includes(dk2)) newD.push(dk2);
+                        }
+                        updSlot(idx,"specificDates",[...(sl.specificDates||[]),...newD].sort());
+                      }
+                    },"+ "+mi[0]);
+                  })),
+                /* date chips by month */
+                (function(){
+                  var MNS5=["\u044f\u043d\u0432","\u0444\u0435\u0432","\u043c\u0430\u0440","\u0430\u043f\u0440","\u043c\u0430\u0439","\u0438\u044e\u043d","\u0438\u044e\u043b","\u0430\u0432\u0433","\u0441\u0435\u043d","\u043e\u043a\u0442","\u043d\u043e\u044f","\u0434\u0435\u043a"];
+                  var DR5=["\u0432\u0441","\u043f\u043d","\u0432\u0442","\u0441\u0440","\u0447\u0442","\u043f\u0442","\u0441\u0431"];
+                  var byM5={};
+                  (sl.specificDates||[]).forEach(function(d){var dt=ld(d);var mk=MNS5[dt.getMonth()];if(!byM5[mk])byM5[mk]=[];byM5[mk].push({d:d,dt:dt});});
+                  var keys=Object.keys(byM5);
+                  if(!keys.length) return /* @__PURE__ */ React.createElement("div",{style:{fontSize:12,color:"#2a4060",padding:"8px 0"}},"\u0414\u043e\u0431\u0430\u0432\u044c \u0434\u0430\u0442\u044b \u2191");
+                  return /* @__PURE__ */ React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+                    keys.map(function(mk){
+                      return /* @__PURE__ */ React.createElement("div",{key:mk},
+                        /* @__PURE__ */ React.createElement("div",{style:{fontSize:11,fontWeight:700,color:"#3a6a9a",marginBottom:4}},mk.toUpperCase()),
+                        /* @__PURE__ */ React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:4}},
+                          byM5[mk].map(function(item){
+                            return /* @__PURE__ */ React.createElement("div",{key:item.d,
+                              style:{display:"flex",alignItems:"center",gap:4,background:"#0c1e38",border:"1.5px solid #2a4a80",borderRadius:7,padding:"4px 10px",cursor:"pointer"},
+                              onClick:function(){updSlot(idx,"specificDates",(sl.specificDates||[]).filter(function(x){return x!==item.d;}));}
+                            },
+                              /* @__PURE__ */ React.createElement("span",{style:{fontSize:13,fontWeight:700,color:"#c0d8f0"}},item.dt.getDate()+" "+DR5[item.dt.getDay()]),
+                              /* @__PURE__ */ React.createElement("span",{style:{fontSize:12,color:"#ef4444",fontWeight:700}},"\u00d7"));
+                          })));
+                    }));
+                })()),
+              /* PERIOD MODE: date range */
+              (sl.mode||"period")==="period" && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 8 } },
                 /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } },
                   /* @__PURE__ */ React.createElement("label", { className: "lbl" }, "\u0421 \u0434\u0430\u0442\u044b"),
                   /* @__PURE__ */ React.createElement("input", { type: "date", className: "inp", value: sl.startDate,
@@ -2466,6 +2539,15 @@ react-dom/cjs/react-dom-client.production.js:
                 fontSize: 12, color: "#f97316", background: "rgba(249,115,22,.06)",
                 border: "1px solid rgba(249,115,22,.2)", borderRadius: 7, padding: "6px 12px"
               } }, "\u26a0\ufe0f 0 \u0437\u0430\u043d\u044f\u0442\u0438\u0439 \u2014 \u0434\u0435\u043d\u044c \u043d\u0435\u0434\u0435\u043b\u0438 \u043d\u0435 \u0441\u043e\u0432\u043f\u0430\u0434\u0430\u0435\u0442 \u0441 \u0434\u0430\u0442\u0430\u043c\u0438"),
+              sl.startDate && /* @__PURE__ */ React.createElement("button", {
+                className: "btn btn-sm btn-primary",
+                style: { fontSize: 11, padding: "4px 10px", marginTop: 6 },
+                onClick: function(e2) {
+                  e2.stopPropagation();
+                  var d2_=sl.startDate?new Date(sl.startDate+"T00:00:00"):null;
+                  if(d2_) toggleSlotDow(idx, d2_.getDay());
+                }
+              }, "\u{1F527} \u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0434\u0435\u043d\u044c"),
               dates.length > 0 && /* @__PURE__ */ React.createElement("div", { style: {
                 fontSize: 12, color: "#34d399", background: "rgba(52,211,153,.06)",
                 border: "1px solid rgba(52,211,153,.15)", borderRadius: 7, padding: "8px 12px"
