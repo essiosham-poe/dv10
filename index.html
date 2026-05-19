@@ -1128,379 +1128,187 @@ react-dom/cjs/react-dom-client.production.js:
     return /* @__PURE__ */ React.createElement("div", { className: "kpi" }, /* @__PURE__ */ React.createElement("div", { className: "kpi-l" }, l), /* @__PURE__ */ React.createElement("div", { className: "kpi-v", style: { color: c } }, v));
   }
   function WeekTab({ ctx }) {
-    var _a, _b, _c, _d, _e;
-    const { data, open, colorMap, weekFull, setWeekFull } = ctx;
-    const { bookings, orgBookings } = data;
-    const [weekTs, setWeekTs] = useState(() => {
-      const d = /* @__PURE__ */ new Date();
-      d.setDate(d.getDate() - (d.getDay() + 6) % 7);
-      d.setHours(0, 0, 0, 0);
-      return d.getTime();
-    });
-    const prev = () => setWeekTs((t) => t - 7 * 864e5);
-    const next = () => setWeekTs((t) => t + 7 * 864e5);
-    const toToday = () => {
-      const d = /* @__PURE__ */ new Date();
-      d.setDate(d.getDate() - (d.getDay() + 6) % 7);
-      d.setHours(0, 0, 0, 0);
-      setWeekTs(d.getTime());
-    };
-    const days = useMemo(() => Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(weekTs);
+    const { data, open, colorMap } = ctx;
+    const { bookings, orgBookings, prices, specialPrices } = data;
+    const [viewDate, setViewDate] = React.useState(() => dkey(new Date()));
+    const now = new Date(), nowM = now.getHours()*60 + now.getMinutes();
+    const MNS = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+    const DOW = ["вс","пн","вт","ср","чт","пт","сб"];
+    const DOWF = ["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+
+    // Build 7-day window starting from viewDate (Mon-aligned)
+    const startDt = ld(viewDate);
+    // Align to Monday
+    const dow0 = startDt.getDay();
+    const diff = (dow0 === 0 ? -6 : 1 - dow0);
+    const weekStart = new Date(startDt);
+    weekStart.setDate(weekStart.getDate() + diff);
+
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(weekStart);
       d.setDate(d.getDate() + i);
-      return d;
-    }), [weekTs]);
-    const dateSets = useMemo(() => {
-      const m = /* @__PURE__ */ new Map();
-      bookings.forEach((b) => m.set(b.id, new Set(allDates(b))));
-      return m;
-    }, [bookings]);
-    const weekNames = useMemo(() => {
-      const s = /* @__PURE__ */ new Set();
-      days.forEach((d) => {
-        const dk = dkey(d);
-        bookings.forEach((b) => {
-          var _a2;
-          if ((_a2 = dateSets.get(b.id)) == null ? void 0 : _a2.has(dk)) s.add(b.clientName);
-        });
-      });
-      return [...s];
-    }, [days, bookings, dateSets]);
-    const now = /* @__PURE__ */ new Date(), todayKey = dkey(now);
-    const [tip, setTip] = useState(null);
-    const CELL_H = 34, TW = 60, CW = 28;
-    const hours = Array.from({ length: Math.floor(TE / 60) - Math.floor(TS / 60) }, (_, i) => Math.floor(TS / 60) + i);
-    const DLBL = ["\u041F\u043D", "\u0412\u0442", "\u0421\u0440", "\u0427\u0442", "\u041F\u0442", "\u0421\u0431", "\u0412\u0441"];
-    function getHit(day, courtId, h) {
-      var _a2;
-      const dk = dkey(day);
-      if (!dateSets.get || !bookings) return null;
-      for (const b of bookings) {
-        if (!((_a2 = dateSets.get(b.id)) == null ? void 0 : _a2.has(dk))) continue;
-        for (const sl of slotsOnDate(b, dk)) {
-          if (!(sl.courts || []).includes(courtId)) continue;
-          if (t2m(sl.timeStart) <= h * 60 && norm(sl.timeEnd) > h * 60) return { b, sl };
-        }
-      }
+      days.push(dkey(d));
+    }
+
+    const weekLabel = () => {
+      const s = ld(days[0]), e = ld(days[6]);
+      if (s.getMonth() === e.getMonth())
+        return s.getDate() + "–" + e.getDate() + " " + MNS[s.getMonth()] + " " + s.getFullYear();
+      return s.getDate() + " " + MNS[s.getMonth()] + " – " + e.getDate() + " " + MNS[e.getMonth()];
+    };
+
+    const prevWeek = () => { const d = ld(days[0]); d.setDate(d.getDate()-7); setViewDate(dkey(d)); };
+    const nextWeek = () => { const d = ld(days[0]); d.setDate(d.getDate()+7); setViewDate(dkey(d)); };
+    const goToday  = () => setViewDate(dkey(new Date()));
+
+    const getSessStatus = (bk, date) => {
+      const ss = (bk.sessions||[]).filter(s => s.date === date);
+      if (ss.some(s => s.status==="cancel_client"||s.status==="cancel_club"||s.status==="moved")) return "cancel";
+      if (ss.some(s => s.status==="absent")) return "absent";
+      if (ss.some(s => s.status==="present")) return "present";
       return null;
-    }
-    function isOrgBlock(day, courtId, h) {
-      const dk = dkey(day);
-      return orgBookings.some((ob) => {
-        if (!(ob.dates || []).includes(dk)) return false;
-        if (ob.blockAll) return true;
-        return (ob.courts || []).includes(courtId) && ovlp(`${String(h).padStart(2, "0")}:00`, m2t((h + 1) * 60), ob.timeStart, ob.timeEnd);
-      });
-    }
-    const courts = ALL_COURTS;
+    };
 
-    // ── Open large week view in new window ─────────────────────────────────
-    function openLarge() {
-      const DLBL2 = ['\u041f\u043d','\u0412\u0442','\u0421\u0440','\u0427\u0442','\u041f\u0442','\u0421\u0431','\u0412\u0441'];
-      const MR2 = ['\u044f\u043d\u0432\u0430\u0440\u044f','\u0444\u0435\u0432\u0440\u0430\u043b\u044f','\u043c\u0430\u0440\u0442\u0430','\u0430\u043f\u0440\u0435\u043b\u044f','\u043c\u0430\u044f','\u0438\u044e\u043d\u044f','\u0438\u044e\u043b\u044f','\u0430\u0432\u0433\u0443\u0441\u0442\u0430','\u0441\u0435\u043d\u0442\u044f\u0431\u0440\u044f','\u043e\u043a\u0442\u044f\u0431\u0440\u044f','\u043d\u043e\u044f\u0431\u0440\u044f','\u0434\u0435\u043a\u0430\u0431\u0440\u044f'];
-      const CW2 = 90, CELL_H2 = 42, TW2 = 54;
-      const today2 = dkey(new Date());
-      const hrs = Array.from({ length: Math.floor(TE/60) - Math.floor(TS/60) }, (_,i) => Math.floor(TS/60)+i);
+    const today = dkey(new Date());
 
-      let dayHeaders = '';
-      days.forEach((day, di) => {
-        const it = dkey(day) === today2;
-        dayHeaders += '<th colspan="' + courts.length + '" style="width:' + (courts.length*CW2) + 'px;background:' + (it?'#0d2240':'#0b1830') + ';color:' + (it?'#60a5fa':'#8ab8e0') + ';border-right:2px solid ' + (it?'#3a7abf':'#1a2d4a') + ';font-size:13px;font-weight:700;padding:10px 4px 4px;text-align:center;vertical-align:bottom;border-bottom:2px solid ' + (it?'#3a7abf':'#1a2d4a') + '">' +
-          DLBL2[di] + '<br><span style="font-size:24px;font-weight:900;color:' + (it?'#fff':'#c0d8f0') + '">' + day.getDate() + '</span><br><span style="font-size:11px;opacity:.55">' + MR2[day.getMonth()] + '</span>' +
-          (it ? '<br><span style="font-size:8px;color:#60a5fa;letter-spacing:.12em">\u0421\u0415\u0413\u041e\u0414\u041d\u042f</span>' : '') +
-          '</th>';
-      });
+    return /* @__PURE__ */ React.createElement("div", null,
+      /* ── Week nav ── */
+      /* @__PURE__ */ React.createElement("div", { style: {
+        display:"flex", alignItems:"center", gap:8, marginBottom:16,
+        flexWrap:"wrap"
+      } },
+        /* @__PURE__ */ React.createElement("button", { className:"icon-btn", onClick:prevWeek }, "◀"),
+        /* @__PURE__ */ React.createElement("span", { style:{fontWeight:800, fontSize:15, color:"var(--txt)", flex:1} }, weekLabel()),
+        /* @__PURE__ */ React.createElement("button", { className:"btn btn-ghost btn-sm", onClick:goToday }, "Сегодня"),
+        /* @__PURE__ */ React.createElement("button", { className:"icon-btn", onClick:nextWeek }, "▶")),
 
-      let courtHeaders = '<th style="width:' + TW2 + 'px;background:#07111f;border-bottom:1px solid #1a2d4a;"></th>';
-      days.forEach(day => {
-        courts.forEach(ct => {
-          courtHeaders += '<th style="width:' + CW2 + 'px;font-size:10px;color:#2a4a70;font-weight:700;text-align:center;padding:3px 0 5px;background:#090e1a;border-left:1px solid #0d1820;border-bottom:1px solid #1a2d4a">' +
-            (ct.t==='fb'?'\u26bd':ct.t==='tn'?'\U0001f3be':'\U0001f3d0') + ' ' + ct.id + '</th>';
-        });
-      });
-
-      let rows = '';
-      hrs.forEach((h, hi) => {
-        const bg = hi%2===0 ? '#0b1020' : '#090d18';
-        let cells = '<td style="background:#090e1a;color:#2a4a70;font-size:12px;font-family:monospace;font-weight:600;padding:0 6px;width:' + TW2 + 'px;border-bottom:1px solid #0e1520;vertical-align:middle;text-align:right">' + String(h).padStart(2,'0') + ':00</td>';
-        days.forEach((day) => {
-          courts.forEach(ct => {
-            let hit = null;
-            const dk2 = dkey(day);
-            for (const b of bookings) {
-              if (!allDates(b).includes(dk2)) continue;
-              for (const sl of slotsOnDate(b, dk2)) {
-                if (!(sl.courts||[]).includes(ct.id)) continue;
-                if (t2m(sl.timeStart) <= h*60 && norm(sl.timeEnd) > h*60) { hit = {b, sl}; break; }
-              }
-              if (hit) break;
+      /* ── Day pills ── */
+      /* @__PURE__ */ React.createElement("div", { style:{display:"flex", gap:5, overflowX:"auto", marginBottom:16, paddingBottom:4, scrollbarWidth:"none"} },
+        days.map(d => {
+          const dt = ld(d);
+          const isT = d === today;
+          const hasBks = bookings.some(b => slotsOnDate(b,d).length > 0) ||
+                         orgBookings.some(ob => (ob.dates||[]).includes(d));
+          return /* @__PURE__ */ React.createElement("a", { key:d,
+            href:"#"+d,
+            style:{
+              flexShrink:0, padding:"6px 12px", borderRadius:99,
+              border:"1px solid " + (isT ? "var(--accent)" : "var(--border)"),
+              background: isT ? "#4f8ef718" : "transparent",
+              color: isT ? "var(--accent)" : hasBks ? "var(--txt)" : "var(--txt3)",
+              fontWeight: isT ? 700 : hasBks ? 600 : 400,
+              fontSize:12, textDecoration:"none", whiteSpace:"nowrap",
+              display:"flex", flexDirection:"column", alignItems:"center", gap:1
             }
-            const isOrg = orgBookings.some(ob => {
-              if (!(ob.dates||[]).includes(dk2)) return false;
-              if (ob.blockAll) return true;
-              return (ob.courts||[]).includes(ct.id) && ovlp(String(h).padStart(2,'0')+':00', m2t((h+1)*60), ob.timeStart, ob.timeEnd);
-            });
-            const col = hit ? (colorMap[hit.b.clientName]||'#5a7abf') : null;
-            const isFirst = hit && t2m(hit.sl.timeStart) === h*60;
-            const blockH2 = hit ? Math.round((norm(hit.sl.timeEnd)-t2m(hit.sl.timeStart))/60)*CELL_H2 : CELL_H2;
-            const it = dk2 === today2;
-            const isNowH = it && new Date().getHours() === h;
-            const cellBg = isOrg ? bg : hit ? col+'18' : isNowH ? '#0a1838' : bg;
-            let inner = '';
-            if (isFirst && hit) {
-              const sn = hit.b.clientName.split(' ').slice(0,2).join(' ');
-              const ts = hit.sl.timeStart + '\u2013' + hit.sl.timeEnd;
-              const courts2 = (hit.sl.courts||[]).map(id => '\u041a' + id).join(', ');
-              inner = '<div style="position:absolute;left:2px;right:2px;top:2px;height:' + (blockH2-4) + 'px;background:' + col + 'e0;border-radius:5px;overflow:hidden;z-index:3;padding:4px 6px;">' +
-                '<div style="font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 2px #000b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3">' + sn + '</div>' +
-                '<div style="font-size:10px;color:rgba(255,255,255,.8);margin-top:1px">' + ts + '</div>' +
-                '</div>';
-            } else if (hit && !isFirst) {
-              inner = '<div style="position:absolute;inset:0 1px;background:' + col + '40;z-index:2"></div>';
-            }
-            if (isOrg) inner += '<div style="position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0,transparent 4px,rgba(249,115,22,.15) 4px,rgba(249,115,22,.15) 8px)"></div>';
-            const brR = ct.id === courts[courts.length-1].id ? '2px solid ' + (it?'#3a7abf':'#1a2d4a') : '1px solid #0d1820';
-            cells += '<td style="width:' + CW2 + 'px;height:' + CELL_H2 + 'px;background:' + cellBg + ';border-left:1px solid #0d1820;border-bottom:1px solid ' + (isNowH?'#1e4a80':'#0e1520') + ';border-right:' + brR + ';position:relative;vertical-align:top">' + inner + '</td>';
+          },
+            /* @__PURE__ */ React.createElement("span", null, DOW[dt.getDay()]),
+            /* @__PURE__ */ React.createElement("span", { style:{fontSize:14, fontWeight:800} }, dt.getDate()));
+        })),
+
+      /* ── Days ── */
+      /* @__PURE__ */ React.createElement("div", { style:{display:"flex", flexDirection:"column", gap:20} },
+        days.map(d => {
+          const dt = ld(d);
+          const isT = d === today;
+          const bks = bookings.filter(b => slotsOnDate(b,d).length > 0).sort((a,b2) => {
+            const am = Math.min(...slotsOnDate(a,d).map(s=>t2m(s.timeStart)));
+            const bm = Math.min(...slotsOnDate(b2,d).map(s=>t2m(s.timeStart)));
+            return am - bm;
           });
-        });
-        rows += '<tr>' + cells + '</tr>';
-      });
+          const orgs = orgBookings.filter(ob => (ob.dates||[]).includes(d));
+          if (!bks.length && !orgs.length) return null;
 
-      const names = [...new Set(bookings.filter(b => allDates(b).some(d => days.map(x=>dkey(x)).includes(d))).map(b => b.clientName))];
-      const legendHTML = names.map(n => '<span style="display:inline-flex;align-items:center;gap:6px;background:#0e1525;border:1px solid #1e2d4a;border-radius:20px;padding:4px 12px;font-size:12px;color:#c0d0e8;margin:0 4px 6px 0"><span style="width:10px;height:10px;border-radius:2px;background:' + (colorMap[n]||'#555') + ';flex-shrink:0;display:inline-block"></span>' + n + '</span>').join('');
+          return /* @__PURE__ */ React.createElement("div", { key:d, id:d },
+            /* Day header */
+            /* @__PURE__ */ React.createElement("div", { style:{
+              display:"flex", alignItems:"center", gap:8, marginBottom:8,
+              paddingBottom:7, borderBottom:"1px solid var(--border)"
+            } },
+              isT && /* @__PURE__ */ React.createElement("span", { style:{
+                background:"var(--accent)", color:"#fff",
+                borderRadius:99, fontSize:11, fontWeight:700, padding:"2px 8px"
+              } }, "Сегодня"),
+              /* @__PURE__ */ React.createElement("span", { style:{
+                fontSize:14, fontWeight:700, color: isT ? "var(--accent)" : "var(--txt)"
+              } }, dt.getDate() + " " + MNS[dt.getMonth()] + " · " + DOWF[dt.getDay()]),
+              /* @__PURE__ */ React.createElement("span", { style:{fontSize:12, color:"var(--txt3)", marginLeft:"auto"} },
+                (bks.length + orgs.length) + " бр.")),
 
-      const d0 = days[0], d6 = days[6];
-      const title = 'DYNAMO VODNY \u2014 ' + d0.getDate() + ' ' + MR2[d0.getMonth()] + ' \u2013 ' + d6.getDate() + ' ' + MR2[d6.getMonth()] + ' ' + d6.getFullYear();
-      const fname = 'DV_' + [d0.getFullYear(), String(d0.getMonth()+1).padStart(2,'0'), String(d0.getDate()).padStart(2,'0')].join('-') + '.png';
+            /* Cards */
+            /* @__PURE__ */ React.createElement("div", { style:{display:"flex", flexDirection:"column", gap:6} },
+              /* bookings */
+              bks.map(b => {
+                const slots = slotsOnDate(b, d);
+                const firstM = Math.min(...slots.map(s=>t2m(s.timeStart)));
+                const lastM  = Math.max(...slots.map(s=>norm(s.timeEnd)));
+                const isNow  = isT && nowM >= firstM && nowM < lastM;
+                const isPast = isT && nowM >= lastM;
+                const st = getSessStatus(b, d);
+                const col = colorMap[b.clientName] || "var(--accent)";
+                const isCancelled = st==="cancel" || st==="absent";
 
-      const win = window.open('', '_blank', 'width=1440,height=920,scrollbars=yes,resizable=yes');
-      if (!win) { alert('\u0420\u0430\u0437\u0440\u0435\u0448\u0438\u0442\u0435 \u0432\u0441\u043f\u043b\u044b\u0432\u0430\u044e\u0449\u0438\u0435 \u043e\u043a\u043d\u0430 \u0432 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0435'); return; }
-      win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + title + '</title>' +
-      '<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#07111f;color:#c0d8f0;font-family:-apple-system,sans-serif}' +
-      '.hdr{padding:14px 20px 10px;border-bottom:1px solid #1a2d4a;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:#050d1a}' +
-      '.ttl{font-size:18px;font-weight:800;color:#fff;letter-spacing:.02em}.sub{font-size:11px;color:#2a4a6a;margin-top:3px}' +
-      '.lgd{padding:8px 20px 10px;border-bottom:1px solid #1a2d4a;background:#07111f}' +
-      '.wrap{overflow:auto;padding:0}table{border-collapse:collapse;min-width:100%}' +
-      'th{position:sticky;top:0;z-index:10}.btn{background:#1565c0;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin:0 4px}' +
-      '.btn:hover{background:#1976d2}.btn2{background:#0d2240}' +
-      '@media print{.np{display:none!important}}</style>' +
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>' +
-      '</head><body>' +
-      '<div class="hdr"><div><div class="ttl">\U0001f3d0 ' + title + '</div><div class="sub">DYNAMO VODNY \u00b7 \u0426\u0435\u043d\u0442\u0440 \u043f\u043b\u044f\u0436\u043d\u044b\u0445 \u0432\u0438\u0434\u043e\u0432 \u0441\u043f\u043e\u0440\u0442\u0430 \u00b7 \u041b\u0435\u043d\u0438\u043d\u0433\u0440\u0430\u0434\u0441\u043a\u043e\u0435 \u0448., 39</div></div>' +
-      '<div class="np" style="display:flex;gap:6px;flex-wrap:wrap">' +
-      '<button class="btn" onclick="doShot()">📷 PNG</button>' +
-      '<button class="btn btn2" onclick="window.print()">\U0001f5a8\ufe0f \u041f\u0435\u0447\u0430\u0442\u044c</button>' +
-      '</div></div>' +
-      '<div class="lgd">' + (legendHTML || '<span style="font-size:12px;color:#2a4a6a">\u041d\u0435\u0442 \u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0439</span>') + '</div>' +
-      '<div class="wrap"><table id="wt"><thead><tr><th style="width:' + TW2 + 'px;background:#07111f;position:sticky;left:0;z-index:20"></th>' + dayHeaders + '</tr><tr>' + courtHeaders + '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<script>function doShot(){var np=document.querySelectorAll(".np");np.forEach(function(e){e.style.display="none"});' +
-      'html2canvas(document.body,{backgroundColor:"#07111f",scale:2,logging:false,useCORS:true,width:document.body.scrollWidth,height:document.body.scrollHeight}).then(function(c){' +
-      'np.forEach(function(e){e.style.display=""});var a=document.createElement("a");a.download="' + fname + '";a.href=c.toDataURL("image/png");a.click()' +
-      '}).catch(function(e){np.forEach(function(e2){e2.style.display=""});alert(e.message)})}' +
-      '<\/script></body></html>');
-      win.document.close();
-    }
+                const courtsStr = slots.map(sl =>
+                  (sl.courts||[]).map(id=>{const ct=ALL_COURTS.find(c=>c.id===id);return ct?ct.name:"К"+id;}).join("+")
+                  +" "+sl.timeStart+"–"+sl.timeEnd
+                ).join(" · ");
 
-    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", height: weekFull ? "100vh" : "auto" } }, /* @__PURE__ */ React.createElement("div", { className: "week-bar" }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: prev }, "\u25C0"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: toToday }, "\u0421\u0435\u0433\u043E\u0434\u043D\u044F"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: next }, "\u25B6"), /* @__PURE__ */ React.createElement("div", { className: "week-title" }, (_a = days[0]) == null ? void 0 : _a.getDate(), " ", MR[(_b = days[0]) == null ? void 0 : _b.getMonth()], " \u2013 ", (_c = days[6]) == null ? void 0 : _c.getDate(), " ", MR[(_d = days[6]) == null ? void 0 : _d.getMonth()], " ", (_e = days[0]) == null ? void 0 : _e.getFullYear()), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 6, marginLeft: "auto" } }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: () => open("booking", null) }, "\uFF0B \u0411\u0440\u043E\u043D\u044C"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: openLarge, title: "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043d\u0435\u0434\u0435\u043b\u044e \u043a\u0440\u0443\u043f\u043d\u043e + PNG", style: { fontSize: 14 } }, "\U0001F5BC\uFE0F"), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        className: `btn btn-sm ${weekFull ? "btn-primary" : "btn-ghost"}`,
-        onClick: () => setWeekFull((v) => !v),
-        title: weekFull ? "\u0412\u044B\u0439\u0442\u0438 \u0438\u0437 \u043F\u043E\u043B\u043D\u043E\u0433\u043E \u044D\u043A\u0440\u0430\u043D\u0430" : "\u041F\u043E\u043B\u043D\u044B\u0439 \u044D\u043A\u0440\u0430\u043D"
-      },
-      weekFull ? "\u22A0 \u0412\u044B\u0439\u0442\u0438" : "\u229E \u0412\u043E \u0432\u0435\u0441\u044C \u044D\u043A\u0440\u0430\u043D"
-    ))), weekNames.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "week-legend" }, weekNames.map((n) => /* @__PURE__ */ React.createElement("div", { key: n, className: "legend-chip" }, /* @__PURE__ */ React.createElement("span", { style: { width: 8, height: 8, borderRadius: 2, background: colorMap[n] || "#555", flexShrink: 0 } }), /* @__PURE__ */ React.createElement("span", null, n)))), /* @__PURE__ */ React.createElement("div", { className: "week-grid-wrap", style: { flex: weekFull ? 1 : "auto", maxHeight: weekFull ? "calc(100vh - 100px)" : "75vh" } }, /* @__PURE__ */ React.createElement("div", { className: "week-time-col", style: { width: TW } }, /* @__PURE__ */ React.createElement("div", { style: { height: 48, borderBottom: "1px solid #1a2a40" } }), hours.map((h, hi) => /* @__PURE__ */ React.createElement("div", { key: h, className: "week-time-cell", style: { height: CELL_H, background: hi % 2 === 0 ? "#0b1020" : "#090d18" } }, String(h).padStart(2, "0"), ":00"))), /* @__PURE__ */ React.createElement("div", { className: "week-days-scroll" }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", minWidth: days.length * courts.length * CW } }, days.map((day, di) => {
-      const isToday = dkey(day) === todayKey;
-      return /* @__PURE__ */ React.createElement("div", { key: di, style: { flexShrink: 0, width: courts.length * CW, borderRight: `2px solid ${isToday ? "#2a5a9a" : "#1a2a40"}` } }, /* @__PURE__ */ React.createElement("div", { style: {
-        height: 48,
-        background: isToday ? "#091835" : "#0c1525",
-        borderBottom: "1px solid #1e3a5a",
-        position: "sticky",
-        top: 0,
-        zIndex: 5
-      } }, /* @__PURE__ */ React.createElement("div", { style: {
-        textAlign: "center",
-        paddingTop: 5,
-        fontSize: 11,
-        fontWeight: 700,
-        color: isToday ? "#60a5fa" : "#4a6a90"
-      } }, DLBL[di], " ", day.getDate(), ".", String(day.getMonth() + 1).padStart(2, "0"), isToday && /* @__PURE__ */ React.createElement("span", { style: { marginLeft: 3, fontSize: 8 } }, "\u25CF")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", marginTop: 2 } }, courts.map((ct) => /* @__PURE__ */ React.createElement("div", { key: ct.id, style: {
-        width: CW,
-        flexShrink: 0,
-        fontSize: 7,
-        color: "#1a3050",
-        fontWeight: 700,
-        textAlign: "center",
-        borderLeft: "1px solid #0d1820",
-        overflow: "hidden"
-      } }, ct.t === "fb" ? "\u26BD" : ct.t === "tn" ? "\u{1F3BE}" : ct.id)))), hours.map((h, hi) => {
-        const isNowH = isToday && now.getHours() === h;
-        return /* @__PURE__ */ React.createElement("div", { key: h, style: {
-          display: "flex",
-          height: CELL_H,
-          flexShrink: 0,
-          background: isNowH ? "#0a1838" : hi % 2 === 0 ? "#0b1020" : "#090d18",
-          borderBottom: `1px solid ${isNowH ? "#1e4a80" : "#0e1520"}`
-        } }, courts.map((ct, ci) => {
-          const hit = getHit(day, ct.id, h);
-          const org = isOrgBlock(day, ct.id, h);
-          const isFirst = hit && t2m(hit.sl.timeStart) === h * 60;
-          const col = hit ? colorMap[hit.b.clientName] || "#555" : null;
-          const blockH = hit ? Math.max(CELL_H, (norm(hit.sl.timeEnd) - t2m(hit.sl.timeStart)) / 60 * CELL_H) : CELL_H;
-          return /* @__PURE__ */ React.createElement(
-            "div",
-            {
-              key: ci,
-              onClick: () => {
-                if (hit) ctx.open("detail", hit.b);
-                else if (!org) ctx.open("booking", { _prefDate: dkey(day), _prefCourt: ct.id });
-              },
-              onMouseEnter: (e) => {
-                if (hit) {
-                  const r = e.currentTarget.getBoundingClientRect();
-                  setTip({ b: hit.b, x: r.right + 4, y: r.top });
-                }
-              },
-              onMouseLeave: () => setTip(null),
-              style: {
-                width: CW,
-                height: CELL_H,
-                flexShrink: 0,
-                position: "relative",
-                borderLeft: `1px solid ${ci === 0 ? "#1a2a40" : "#0d1520"}`,
-                cursor: org ? "default" : "pointer",
-                background: org ? "transparent" : hit ? `${col}18` : "transparent"
-              }
-            },
-            isFirst && hit && /* @__PURE__ */ React.createElement("div", { style: {
-              position: "absolute",
-              left: 1,
-              right: 1,
-              top: 1,
-              height: blockH - 2,
-              background: `${col}dd`,
-              borderRadius: 3,
-              zIndex: 3,
-              overflow: "hidden",
-              display: "flex",
-              alignItems: "flex-start",
-              justifyContent: "center",
-              padding: "1px",
-              pointerEvents: "none"
-            } }, /* @__PURE__ */ React.createElement("span", { style: {
-              fontSize: 7,
-              fontWeight: 900,
-              color: "#fff",
-              textShadow: "0 1px 2px #000a",
-              lineHeight: 1.1,
-              wordBreak: "break-all",
-              textAlign: "center"
-            } }, hit.b.clientName.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 3))),
-            hit && !isFirst && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", inset: "0 1px", background: `${col}55`, zIndex: 2 } }),
-            org && /* @__PURE__ */ React.createElement("div", { style: {
-              position: "absolute",
-              inset: 0,
-              background: "repeating-linear-gradient(-45deg,transparent 0,transparent 3px,#f9731618 3px,#f9731618 6px)"
-            } })
-          );
-        }));
-      }));
-    })))), tip && /* @__PURE__ */ React.createElement("div", { style: {
-      position: "fixed",
-      left: Math.min(tip.x, window.innerWidth - 220),
-      top: Math.max(4, tip.y),
-      background: "#0e1525",
-      border: `2px solid ${colorMap[tip.b.clientName] || "#3a5a80"}`,
-      borderRadius: 10,
-      padding: "10px 14px",
-      fontSize: 12,
-      color: "#c0d0e8",
-      zIndex: 9999,
-      pointerEvents: "none",
-      maxWidth: 200,
-      boxShadow: "0 8px 30px #000e"
-    } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, fontSize: 14, marginBottom: 3, color: colorMap[tip.b.clientName] || "#60a5fa" } }, tip.b.clientName), slotsOnDate(tip.b, dkey(now)).concat(slotsOnDate(tip.b, dkey(new Date(tip.x)))).slice(0, 2).map((sl, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { fontSize: 11, color: "#5a7a9a" } }, sl.timeStart, "\u2013", sl.timeEnd)), /* @__PURE__ */ React.createElement("div", { style: { color: "#3a5a80", marginTop: 4, fontSize: 11, borderTop: "1px solid #1e2d4a", paddingTop: 4 } }, calcTotal(tip.b, data.prices, data.specialPrices).toLocaleString(), " \u20BD")));
+                let badge = null;
+                if (st==="cancel") badge = /* @__PURE__ */ React.createElement("span", { style:{background:"#a855f720",color:"var(--purple)",border:"1px solid #a855f730",borderRadius:99,fontSize:10,fontWeight:700,padding:"1px 7px"} }, "отмена");
+                else if (st==="absent") badge = /* @__PURE__ */ React.createElement("span", { style:{background:"#f43f5e18",color:"var(--red)",border:"1px solid #f43f5e30",borderRadius:99,fontSize:10,fontWeight:700,padding:"1px 7px"} }, "не был");
+                else if (st==="present") badge = /* @__PURE__ */ React.createElement("span", { style:{background:"#22c55e18",color:"var(--green)",border:"1px solid #22c55e30",borderRadius:99,fontSize:10,fontWeight:700,padding:"1px 7px"} }, "✓ был");
+                else if (isNow) badge = /* @__PURE__ */ React.createElement("span", { className:"now-chip" }, "● сейчас");
+
+                return /* @__PURE__ */ React.createElement("div", { key:b.id,
+                  onClick:()=>open("detail",b),
+                  style:{
+                    background:"var(--bg1)", border:"1px solid var(--border)",
+                    borderLeft:"3px solid "+(isCancelled?(st==="cancel"?"var(--purple)":"var(--red)"):isNow?col:isPast?"var(--border)":col),
+                    borderRadius:10, padding:"10px 14px", cursor:"pointer",
+                    opacity: isCancelled?0.45:isPast?0.55:1,
+                    transition:"all .12s"
+                  }
+                },
+                  /* @__PURE__ */ React.createElement("div", { style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8} },
+                    /* @__PURE__ */ React.createElement("div", { style:{minWidth:0,flex:1} },
+                      /* @__PURE__ */ React.createElement("div", { style:{display:"flex",alignItems:"center",gap:6,marginBottom:3} },
+                        isNow && /* @__PURE__ */ React.createElement("span", { className:"dot-now", style:{background:col} }),
+                        /* @__PURE__ */ React.createElement("span", { style:{fontSize:14,fontWeight:700,color:"var(--txt)"} }, b.clientName),
+                        b.isOrg && /* @__PURE__ */ React.createElement("span", { className:"tag tag-org" }, "юр"),
+                        b.isFree && /* @__PURE__ */ React.createElement("span", { className:"tag tag-free" }, "бесплатно")),
+                      /* @__PURE__ */ React.createElement("div", { style:{fontSize:12,color:"var(--txt3)",fontWeight:500} }, courtsStr)),
+                    /* @__PURE__ */ React.createElement("div", { style:{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4,flexShrink:0} },
+                      /* @__PURE__ */ React.createElement("span", { style:{fontSize:15,fontWeight:800,fontVariantNumeric:"tabular-nums",color:isCancelled?"var(--txt3)":col} },
+                        m2t(firstM)),
+                      badge)));
+              }),
+              /* org events */
+              orgs.map(ob => {
+                const ts = ob.timeStart ? t2m(ob.timeStart) : 0;
+                const te = ob.timeEnd ? t2m(ob.timeEnd) : 1440;
+                const isNow = isT && nowM>=ts && nowM<te;
+                return /* @__PURE__ */ React.createElement("div", { key:"o"+ob.id,
+                  style:{
+                    background:"var(--bg1)", border:"1px solid var(--border)",
+                    borderLeft:"3px solid var(--amber)",
+                    borderRadius:10, padding:"10px 14px",
+                    opacity: isT && nowM>=te ? 0.5 : 1
+                  }
+                },
+                  /* @__PURE__ */ React.createElement("div", { style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8} },
+                    /* @__PURE__ */ React.createElement("div", null,
+                      /* @__PURE__ */ React.createElement("div", { style:{fontSize:14,fontWeight:700,color:"var(--txt)",marginBottom:3} },
+                        "🏢 ", ob.orgName),
+                      /* @__PURE__ */ React.createElement("div", { style:{fontSize:12,color:"var(--txt3)"} },
+                        ob.blockAll ? "Весь объект" : (ob.timeStart||"")+"–"+(ob.timeEnd||""))),
+                    /* @__PURE__ */ React.createElement("div", { style:{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4} },
+                      /* @__PURE__ */ React.createElement("span", { style:{fontSize:15,fontWeight:800,color:"var(--amber)"} }, ob.timeStart||""),
+                      isNow && /* @__PURE__ */ React.createElement("span", { className:"now-chip" }, "● сейчас"),
+                      /* @__PURE__ */ React.createElement("span", { className:"tag tag-org" }, "мероп."))));
+              })));
+        }).filter(Boolean)));
   }
-  function DayTab({ ctx }) {
-    const { data, sel, setSel, open, colorMap } = ctx;
-    const { bookings, orgBookings } = data;
-    const dt = ld(sel);
-    const prev = () => {
-      const d = new Date(dt);
-      d.setDate(d.getDate() - 1);
-      setSel(dkey(d));
-    };
-    const next = () => {
-      const d = new Date(dt);
-      d.setDate(d.getDate() + 1);
-      setSel(dkey(d));
-    };
-    const now = /* @__PURE__ */ new Date(), nowM = now.getHours() * 60 + now.getMinutes();
-    const showNow = sel === dkey(now) && nowM >= TS && nowM < TE;
-    const nowX = Math.max(0, (nowM - TS) / STEP * 28);
-    const dayBks = bookings.filter((b) => allDates(b).includes(sel));
-    const dayOrgs = orgBookings.filter((ob) => (ob.dates || []).includes(sel));
-    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "datebar" }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: prev }, "\u25C0"), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, textAlign: "center", fontWeight: 700, fontSize: 15 } }, DRF[dt.getDay()], ", ", dt.getDate(), " ", MF[dt.getMonth()], " ", dt.getFullYear()), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost btn-sm", onClick: next }, "\u25B6"), /* @__PURE__ */ React.createElement("input", { type: "date", className: "inp inp-sm", value: sel, onChange: (e) => setSel(e.target.value), style: { width: 150 } }), /* @__PURE__ */ React.createElement("button", { className: "btn btn-primary btn-sm", onClick: () => open("booking", null) }, "\uFF0B \u0411\u0440\u043E\u043D\u044C")), /* @__PURE__ */ React.createElement("div", { className: "grid-card", style: { overflowX: "auto", padding: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { minWidth: 100 + 28 * NSLOTS, position: "relative" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", background: "#0c1220", borderBottom: "1px solid #1a2a40", height: 26, position: "sticky", top: 0, zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 100, flexShrink: 0, borderRight: "1px solid #1a2a40", display: "flex", alignItems: "center", paddingLeft: 10, fontSize: 9, color: "#2a4060", fontWeight: 700, letterSpacing: "0.1em" } }, "\u041F\u041B\u041E\u0429\u0410\u0414\u041A\u0410"), /* @__PURE__ */ React.createElement("div", { style: { position: "relative", flex: 1, height: 26 } }, Array.from({ length: NSLOTS + 1 }, (_, i) => i).filter((i) => i % 2 === 0).map((i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { position: "absolute", left: i * 28, height: "100%", borderLeft: "1px solid #1a2a40", display: "flex", alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 8, color: "#2a4060", fontFamily: "monospace", paddingLeft: 2 } }, m2t(TS + i * STEP)))), showNow && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", left: nowX, top: 0, bottom: 0, borderLeft: "2px solid #ef4444", zIndex: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", top: 2, left: 3, background: "#ef4444", color: "#fff", fontSize: 7, borderRadius: 3, padding: "1px 3px", fontFamily: "monospace", whiteSpace: "nowrap" } }, m2t(nowM))))), ALL_COURTS.map((ct, ci) => {
-      const acc = ct.t === "fb" ? "#f97316" : ct.t === "tn" ? "#fbbf24" : "#3a6aaa";
-      return /* @__PURE__ */ React.createElement("div", { key: ct.id, style: { display: "flex", borderBottom: "1px solid #0f1720", minHeight: 50, background: ci % 2 === 0 ? "#0c1220" : "#0a1018" } }, /* @__PURE__ */ React.createElement("div", { style: { width: 100, flexShrink: 0, borderRight: "1px solid #1a2a40", display: "flex", alignItems: "center", padding: "0 10px", gap: 6 } }, /* @__PURE__ */ React.createElement("span", { style: { width: 7, height: 7, borderRadius: "50%", background: acc, flexShrink: 0 } }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, fontWeight: 600, color: "#4a6a8a", whiteSpace: "nowrap" } }, ct.t === "fb" ? "\u26BD " : ct.t === "tn" ? "\u{1F3BE} " : "", ct.name)), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, position: "relative", minHeight: 50 } }, dayOrgs.map((ob) => {
-        if (!ob.blockAll && !(ob.courts || []).includes(ct.id)) return null;
-        if (ob.blockAll) return /* @__PURE__ */ React.createElement("div", { key: ob.id, style: { position: "absolute", inset: 0, background: "#f9731610", pointerEvents: "none", display: "flex", alignItems: "center", paddingLeft: 8 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 9, color: "#f97316", fontWeight: 700 } }, "\u{1F3E2} ", ob.orgName));
-        const sl = t2m(ob.timeStart), el = norm(ob.timeEnd), l = (Math.max(sl, TS) - TS) / STEP * 28, w = (Math.min(el, TE) - Math.max(sl, TS)) / STEP * 28 - 1;
-        return w > 0 && /* @__PURE__ */ React.createElement("div", { key: ob.id, style: {
-          position: "absolute",
-          left: l + 1,
-          top: 4,
-          height: 42,
-          width: w,
-          background: "#f9731618",
-          border: "1px solid #f9731644",
-          borderRadius: 4,
-          zIndex: 1,
-          display: "flex",
-          alignItems: "center",
-          padding: "0 4px",
-          pointerEvents: "none"
-        } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 8, color: "#f97316", fontWeight: 700 } }, "\u{1F3E2}"));
-      }), dayBks.map((b) => {
-        const slots = slotsOnDate(b, sel).filter((sl) => (sl.courts || []).includes(ct.id));
-        if (!slots.length) return null;
-        const bc = colorMap[b.clientName] || "#3a6aaa";
-        return slots.map((sl) => {
-          var _a;
-          const slM = t2m(sl.timeStart), elM = norm(sl.timeEnd), l = (slM - TS) / STEP * 28, w = (elM - slM) / STEP * 28 - 2;
-          if (w <= 0) return null;
-          const sess = (_a = b.sessions) == null ? void 0 : _a.find((s) => s.date === sel && (s.slotId === sl.id || s.courtId === ct.id));
-          const stO = ST.find((s) => s.id === (sess == null ? void 0 : sess.status));
-          const fc = stO ? stO.col : bc;
-          return /* @__PURE__ */ React.createElement(
-            "div",
-            {
-              key: `${b.id}-${sl.id}`,
-              onClick: () => ctx.open("detail", b),
-              style: {
-                position: "absolute",
-                left: l + 1,
-                top: 6,
-                height: 38,
-                width: w,
-                background: `${fc}1e`,
-                border: `1.5px solid ${fc}77`,
-                borderRadius: 5,
-                cursor: "pointer",
-                overflow: "hidden",
-                display: "flex",
-                alignItems: "center",
-                padding: "0 6px",
-                gap: 4
-              }
-            },
-            /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, fontWeight: 700, color: fc, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, b.clientName),
-            stO && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, flexShrink: 0 } }, stO.icon)
-          );
-        });
-      }), showNow && /* @__PURE__ */ React.createElement("div", { style: { position: "absolute", left: nowX, top: 0, bottom: 0, borderLeft: "1px solid #ef444422", pointerEvents: "none", zIndex: 5 } })));
-    })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 14, padding: "8px 12px", background: "#0a1018", borderTop: "1px solid #1a2a40", fontSize: 10, color: "#2a4060", flexWrap: "wrap" } }, ST.map((s) => /* @__PURE__ */ React.createElement("span", { key: s.id }, s.icon, " ", s.label)))));
-  }
+
   function MonthTab({ ctx, onDay }) {
     const { monthFull, setMonthFull } = ctx;
     const { data, sel, colorMap } = ctx;
@@ -3616,7 +3424,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,sans-se
 /* ══════════════════════════════════════════════════════════════
    DESKTOP  ≥ 900px
 ══════════════════════════════════════════════════════════════ */
-@media(min-width:900px){
+@media(min-width:1024px){
   /* Hide mobile nav */
   .hdr{display:none!important}
   .nav{display:none!important}
@@ -3627,7 +3435,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,sans-se
   /* ─ Sidebar ─ */
   .sidebar{
     display:flex;flex-direction:column;
-    width:220px;flex-shrink:0;
+    width:200px;flex-shrink:0;
     background:var(--bg1);border-right:1px solid var(--border);
     position:sticky;top:0;height:100vh;overflow-y:auto;z-index:50
   }
