@@ -3421,6 +3421,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,sans-se
 .toast-ok{border-color:#22c55e38;color:var(--green)}
 .toast-err{border-color:#f43f5e38;color:var(--red)}
 
+.sidebar{display:none}
 /* ══════════════════════════════════════════════════════════════
    DESKTOP  ≥ 900px
 ══════════════════════════════════════════════════════════════ */
@@ -3439,57 +3440,6 @@ body{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,sans-se
     background:var(--bg1);border-right:1px solid var(--border);
     position:sticky;top:0;height:100vh;overflow-y:auto;z-index:50
   }
-  .sidebar-logo{
-    padding:20px 16px 16px;border-bottom:1px solid var(--border);
-    display:flex;align-items:center;gap:10px
-  }
-  .sidebar-logo .logo-ball{font-size:28px}
-  .sidebar-logo .logo-title{font-size:14px;font-weight:800;color:var(--txt);letter-spacing:-.01em}
-  .sidebar-logo .logo-sub{font-size:10px;color:var(--txt3)}
-  .sidebar-nav{display:flex;flex-direction:column;padding:10px 8px;gap:2px;flex:1}
-  .sidebar-nav .ntab{
-    border-radius:9px;padding:11px 12px;
-    justify-content:flex-start;gap:10px;
-    font-size:14px;border-bottom:none;width:auto;height:auto;margin:0
-  }
-  .sidebar-nav .ntab:hover{background:var(--bg2)}
-  .sidebar-nav .ntab-on{background:#4f8ef714;color:var(--accent)!important;border-bottom:none}
-  .sidebar-actions{padding:10px 8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px}
-  .sidebar-actions .btn{justify-content:flex-start;width:100%;font-size:13px;padding:9px 12px}
-
-  /* ─ Main ─ */
-  .main{flex:1;padding:28px 36px 60px;min-height:100vh;max-width:none;overflow-x:hidden}
-  .wfull-main{flex:1}
-
-  /* ─ Bigger type ─ */
-  body{font-size:15px}
-  .btn{padding:11px 20px;font-size:15px}
-  .btn-sm{padding:8px 14px;font-size:13px}
-  .inp{font-size:15px;padding:11px 14px}
-  .mh{font-size:19px}
-  .modal-header{padding:18px 22px}
-  .modal-body{padding:16px 22px;gap:12px}
-  .overlay{align-items:center}
-  .modal{border-radius:16px;max-height:88vh;max-width:580px}
-  .kpi-v{font-size:28px}
-  .kpi-l{font-size:11px}
-  .kpi{padding:14px 18px}
-  .bk-card{padding:16px 18px}
-  .grid-card{padding:14px 18px}
-  .today-dow{font-size:26px}
-  .today-hero{padding:18px 20px}
-  .evt-name{font-size:15px}
-  .evt-sub{font-size:12px}
-  .evt-card{padding:14px 16px}
-  .evt-time{font-size:16px}
-  .form-grid{grid-template-columns:repeat(4,1fr)}
-  .sec-hdr{font-size:12px}
-  .week-time-cell{font-size:11px}
-  .month-full-overlay .month-grid-cell{min-height:130px!important;font-size:13px!important}
-  .month-full-overlay .month-evt{font-size:12px!important;padding:5px 8px!important}
-  .lbl{font-size:12px;margin-bottom:5px}
-  .tag{font-size:12px;padding:2px 9px}
-}
 
 /* ─ Wide desktop ─ */
 @media(min-width:1400px){
